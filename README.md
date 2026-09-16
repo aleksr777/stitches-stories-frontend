@@ -33,7 +33,7 @@ VITE_API_URL=http://localhost:5174/api
 VITE_BASE_PATH=/
 ```
 
-Открыть `http://localhost:5173`. Логин владельца и пароль задаются через `INITIAL_ADMIN_*` в локальном `.env` бэкенда. Тестовые письма находятся в Mailpit: `http://localhost:8025`.
+Открыть `http://localhost:5173`. Логин владельца и пароль задаются через `INITIAL_ADMIN_*` в локальном `.env` бэкенда. Тестовые письма находятся в Mailpit: `http://127.0.0.1:18025` по умолчанию; порт задаётся через `MAILPIT_WEB_PORT` в бэкенде. Запуск сервисов и устранение конфликтов портов описаны в [README бэкенда](https://github.com/aleksr777/stitches-stories-backend/tree/develop#запуск-для-разработки).
 
 ```bash
 npm run typecheck
