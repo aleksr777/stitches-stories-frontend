@@ -15,7 +15,7 @@ const AdminRoute = () => {
         if (isMounted) setIsAdmin(user.role === 'admin');
       } catch (err: unknown) {
         if (isMounted) {
-          setError(err instanceof Error ? err.message : 'Failed to verify access');
+          setError(err instanceof Error ? err.message : 'Не удалось проверить доступ');
         }
       }
     };
@@ -28,7 +28,7 @@ const AdminRoute = () => {
   }, []);
 
   if (error) return <p>{error}</p>;
-  if (isAdmin === null) return <p>Checking access...</p>;
+  if (isAdmin === null) return <p>Проверяем доступ…</p>;
   if (!isAdmin) return <Navigate to="/forbidden" replace />;
 
   return <Outlet />;

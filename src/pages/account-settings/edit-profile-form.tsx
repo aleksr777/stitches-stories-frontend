@@ -28,7 +28,7 @@ const EditProfileForm = ({
 }: EditProfileFormProps) => (
   <form className={styles.form} onSubmit={onSubmit}>
     <label className={styles.label}>
-      Nickname
+      Псевдоним
       <input
         className={styles.input}
         value={nickname}
@@ -39,7 +39,7 @@ const EditProfileForm = ({
     </label>
 
     <label className={styles.label}>
-      Name
+      Имя
       <input
         className={styles.input}
         value={name}
@@ -50,7 +50,7 @@ const EditProfileForm = ({
     </label>
 
     <label className={styles.label}>
-      Age
+      Возраст
       <input
         className={styles.input}
         value={age}
@@ -66,7 +66,7 @@ const EditProfileForm = ({
     {message && <p className={styles.message}>{message}</p>}
 
     <button className={styles.button} type="submit" disabled={isSubmitting}>
-      {isSubmitting ? 'Saving...' : 'Save changes'}
+      {isSubmitting ? 'Сохраняем…' : 'Сохранить изменения'}
     </button>
   </form>
 );

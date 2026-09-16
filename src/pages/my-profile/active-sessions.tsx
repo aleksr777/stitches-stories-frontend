@@ -22,7 +22,7 @@ const ActiveSessions = () => {
       setError(null);
       setSessions(await getSessionsRequest());
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to load sessions');
+      setError(err instanceof Error ? err.message : 'Не удалось загрузить сеансы');
     } finally {
       setIsLoading(false);
     }
@@ -37,7 +37,7 @@ const ActiveSessions = () => {
       await revokeSessionRequest(sessionId);
       setSessions((current) => current.filter((session) => session.id !== sessionId));
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to terminate session');
+      setError(err instanceof Error ? err.message : 'Не удалось завершить сеанс');
     } finally {
       setRevokingIds((current) => {
         const next = new Set(current);
@@ -55,17 +55,17 @@ const ActiveSessions = () => {
       await Promise.all(otherSessions.map((session) => revokeSessionRequest(session.id)));
       setSessions((current) => current.filter((session) => session.current));
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to terminate other sessions');
+      setError(err instanceof Error ? err.message : 'Не удалось завершить остальные сеансы');
       await loadSessions();
     } finally {
       setIsRevokingOthers(false);
     }
   };
-  if (isLoading) return <p>Loading sessions...</p>;
+  if (isLoading) return <p>Загружаем сеансы…</p>;
   return (
     <section className={styles.section}>
       <div className={styles.header}>
-        <h2 className={styles.title}>Active sessions</h2>
+        <h2 className={styles.title}>Активные сеансы</h2>
         <button
           className={styles.terminateAllButton}
           type="button"
@@ -76,24 +76,24 @@ const ActiveSessions = () => {
             !sessions.some((session) => !session.current)
           }
         >
-          {isRevokingOthers ? 'Terminating...' : 'Terminate all other sessions'}
+          {isRevokingOthers ? 'Завершаем…' : 'Завершить остальные сеансы'}
         </button>
       </div>
       {error && <p className={styles.error}>{error}</p>}
       {orderedSessions.length === 0 ? (
-        <p>No active sessions found.</p>
+        <p>Активных сеансов нет.</p>
       ) : (
         <div className={styles.list}>
           {orderedSessions.map((session) => (
             <article className={styles.card} key={session.id}>
               <div className={styles.cardHeader}>
                 <strong>{getSessionDeviceLabel(session.user_agent)}</strong>
-                {session.current && <span className={styles.current}>Current session</span>}
+                {session.current && <span className={styles.current}>Текущий сеанс</span>}
               </div>
-              <span>IP: {session.ip_address ?? 'Unknown'}</span>
-              <span>Signed in: {formatSessionDate(session.created_at)}</span>
-              <span>Last used: {formatSessionDate(session.last_used_at)}</span>
-              <span>Expires: {formatSessionDate(session.expires_at)}</span>
+              <span>IP: {session.ip_address ?? 'Неизвестно'}</span>
+              <span>Вход: {formatSessionDate(session.created_at)}</span>
+              <span>Последняя активность: {formatSessionDate(session.last_used_at)}</span>
+              <span>Истекает: {formatSessionDate(session.expires_at)}</span>
               {!session.current && (
                 <button
                   className={styles.terminateButton}
@@ -101,7 +101,7 @@ const ActiveSessions = () => {
                   onClick={() => void handleRevoke(session.id)}
                   disabled={revokingIds.has(session.id) || isRevokingOthers}
                 >
-                  {revokingIds.has(session.id) ? 'Terminating...' : 'Terminate session'}
+                  {revokingIds.has(session.id) ? 'Завершаем…' : 'Завершить сеанс'}
                 </button>
               )}
             </article>
@@ -109,7 +109,7 @@ const ActiveSessions = () => {
         </div>
       )}
       <Link className={styles.backLink} to="/users/me">
-        Back to profile
+        Вернуться в профиль
       </Link>
     </section>
   );

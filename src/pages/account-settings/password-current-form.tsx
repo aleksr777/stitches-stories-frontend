@@ -16,7 +16,7 @@ const PasswordCurrentForm = ({
 }: PasswordCurrentFormProps) => (
   <form className={styles.form} onSubmit={onSubmit}>
     <label className={styles.label}>
-      Current password
+      Текущий пароль
       <input
         className={styles.input}
         name="oldPassword"
@@ -31,7 +31,7 @@ const PasswordCurrentForm = ({
     {error && <p className={styles.error}>{error}</p>}
 
     <button className={styles.button} type="submit" disabled={isSubmitting}>
-      {isSubmitting ? 'Checking...' : 'Continue'}
+      {isSubmitting ? 'Проверяем…' : 'Продолжить'}
     </button>
 
     <button
@@ -40,7 +40,7 @@ const PasswordCurrentForm = ({
       disabled={isSubmitting}
       onClick={onForgotPassword}
     >
-      Forgot current password?
+      Не помню текущий пароль
     </button>
   </form>
 );

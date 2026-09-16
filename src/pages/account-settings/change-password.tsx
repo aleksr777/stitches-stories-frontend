@@ -96,7 +96,7 @@ const ChangePassword = () => {
 
   return (
     <section className={styles.wrapper}>
-      <h2 className={styles.title}>Change password</h2>
+      <h2 className={styles.title}>Сменить пароль</h2>
       {isReset ? (
         <PasswordResetForm error={error} isSubmitting={isSubmitting} onSubmit={handleReset} />
       ) : code ? (
@@ -110,7 +110,7 @@ const ChangePassword = () => {
         />
       )}
       <Link className={styles.link} to="/users/me">
-        Back to profile
+        Вернуться в профиль
       </Link>
     </section>
   );

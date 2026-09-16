@@ -71,13 +71,13 @@ test.each([false, true])(
   'email change preserves auth, including invalid code: %s',
   async (rejectCode) => {
     const { router, calls } = startApp('/users/me/settings/email', { signedIn: true, rejectCode });
-    await screen.findByLabelText('New email');
-    fill('New email', 'new@example.com');
-    fill('Current password', 'password12345');
-    submit('Continue');
-    await screen.findByLabelText('Confirmation code');
-    fill('Confirmation code', '123456');
-    submit('Change email');
+    await screen.findByLabelText('Новая почта');
+    fill('Новая почта', 'new@example.com');
+    fill('Текущий пароль', 'password12345');
+    submit('Продолжить');
+    await screen.findByLabelText('Код подтверждения');
+    fill('Код подтверждения', '123456');
+    submit('Сменить почту');
 
     if (rejectCode) {
       await screen.findByText('Invalid confirmation code');

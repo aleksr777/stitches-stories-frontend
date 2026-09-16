@@ -33,7 +33,7 @@ const ProtectedRoute = () => {
           clearSession();
           return;
         }
-        if (blocking) setValidationError('Unable to verify the session. Please try again.');
+        if (blocking) setValidationError('Не удалось проверить сеанс. Повторите попытку.');
       }
     },
     [clearSession],
@@ -65,7 +65,7 @@ const ProtectedRoute = () => {
     };
   }, [isAuth, isInitializing, location.key, validatedLocationKey, validateSession]);
 
-  if (isInitializing) return <p>Loading...</p>;
+  if (isInitializing) return <p>Загружаем…</p>;
   if (!isAuth) {
     return <Navigate to="/auth/login" state={{ from: location }} replace />;
   }
@@ -76,12 +76,12 @@ const ProtectedRoute = () => {
         <div>
           <p>{validationError}</p>
           <button type="button" onClick={() => void validateSession(location.key)}>
-            Retry
+            Повторить
           </button>
         </div>
       );
     }
-    return <p>Checking session...</p>;
+    return <p>Проверяем сеанс…</p>;
   }
 
   return <Outlet />;

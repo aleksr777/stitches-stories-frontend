@@ -4,6 +4,8 @@ export type LoginDto = {
 };
 
 export type RegistrationRequestDto = {
+  name?: string;
+  documents?: { id: string; version: string; sha256: string }[];
   email: string;
   password: string;
 };

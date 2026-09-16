@@ -75,13 +75,13 @@
 
 .error {
   margin: 0;
-  color: #b00000;
+  color: #963745;
   font-size: 14px;
 }
 
 .backLink {
   width: fit-content;
-  color: #00e;
+  color: var(--accent);
   text-decoration: none;
   font-size: 18px;
 }

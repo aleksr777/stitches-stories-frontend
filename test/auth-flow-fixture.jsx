@@ -1,7 +1,7 @@
 import { render, fireEvent, screen } from '@testing-library/react';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { vi } from 'vitest';
-import App from '../src/app';
+import App from './template-app';
 import AuthProvider from '../src/features/auth/model/auth-provider';
 
 const json = (body, status = 200) =>

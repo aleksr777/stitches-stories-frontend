@@ -49,9 +49,16 @@ const AuthProvider = ({ children }: PropsWithChildren) => {
     return { status: 'authenticated' };
   }, []);
 
-  const requestRegistration = useCallback(async (email: string, password: string) => {
-    return registrationRequest({ email, password });
-  }, []);
+  const requestRegistration = useCallback(
+    async (
+      email: string,
+      password: string,
+      details?: { name: string; documents: { id: string; version: string; sha256: string }[] },
+    ) => {
+      return registrationRequest({ email, password, ...details });
+    },
+    [],
+  );
 
   const resendRegistration = useCallback(async (email: string) => {
     return registrationResendRequest({ email });

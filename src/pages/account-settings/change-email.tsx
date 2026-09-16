@@ -18,11 +18,11 @@ const ChangeEmail = () => {
 
   return (
     <section className={styles.wrapper}>
-      <h2 className={styles.title}>Change email</h2>
+      <h2 className={styles.title}>Сменить почту</h2>
       {!newEmail ? (
         <form className={styles.form} onSubmit={handleRequest}>
           <label className={styles.label}>
-            New email
+            Новая почта
             <input
               className={styles.input}
               name="newEmail"
@@ -33,7 +33,7 @@ const ChangeEmail = () => {
             />
           </label>
           <label className={styles.label}>
-            Current password
+            Текущий пароль
             <input
               className={styles.input}
               name="currentPassword"
@@ -46,14 +46,14 @@ const ChangeEmail = () => {
           {lockoutMessage && <p className={styles.error}>{lockoutMessage}</p>}
           {error && <p className={styles.error}>{error}</p>}
           <button className={styles.button} type="submit" disabled={isSubmitting || isLocked}>
-            {isSubmitting ? 'Sending code...' : 'Continue'}
+            {isSubmitting ? 'Отправляем код…' : 'Продолжить'}
           </button>
         </form>
       ) : (
         <form className={styles.form} onSubmit={handleConfirm}>
-          <p className={styles.message}>Confirmation code sent to {newEmail}</p>
+          <p className={styles.message}>Код отправлен на {newEmail}</p>
           <label className={styles.label}>
-            Confirmation code
+            Код подтверждения
             <input
               className={styles.input}
               name="code"
@@ -66,8 +66,8 @@ const ChangeEmail = () => {
               required
             />
           </label>
-          <p className={styles.message}>Maximum {maxAttempts} incorrect code attempts.</p>
-          <p className={styles.message}>Attempts remaining: {attemptsRemaining}.</p>
+          <p className={styles.message}>Допустимо ошибок: {maxAttempts}</p>
+          <p className={styles.message}>Осталось попыток: {attemptsRemaining}.</p>
           {lockoutMessage && <p className={styles.error}>{lockoutMessage}</p>}
           {error && <p className={styles.error}>{error}</p>}
           <button
@@ -75,7 +75,7 @@ const ChangeEmail = () => {
             type="submit"
             disabled={isSubmitting || isLocked || attemptsRemaining === 0}
           >
-            {isSubmitting ? 'Saving...' : 'Change email'}
+            {isSubmitting ? 'Сохраняем…' : 'Сменить почту'}
           </button>
           <button
             className={styles.secondaryButton}
@@ -83,12 +83,12 @@ const ChangeEmail = () => {
             disabled={isSubmitting}
             onClick={handleUseAnotherEmail}
           >
-            Use another email
+            Указать другую почту
           </button>
         </form>
       )}
       <Link className={styles.link} to="/users/me">
-        Back to profile
+        Вернуться в профиль
       </Link>
     </section>
   );

@@ -50,7 +50,7 @@ const DeleteProfile = () => {
   };
 
   if (isAdmin === null && !loadError) {
-    return <p>Loading profile...</p>;
+    return <p>Загружаем профиль…</p>;
   }
 
   return (
@@ -66,7 +66,7 @@ const DeleteProfile = () => {
           <p className={styles.warning}>This action is permanent and cannot be undone.</p>
           <form className={styles.form} onSubmit={handleSubmit}>
             <label className={styles.label}>
-              Current password
+              Текущий пароль
               <input
                 className={styles.input}
                 name="password"
@@ -88,7 +88,7 @@ const DeleteProfile = () => {
       )}
 
       <Link className={styles.link} to="/users/me">
-        Back to profile
+        Вернуться в профиль
       </Link>
     </section>
   );

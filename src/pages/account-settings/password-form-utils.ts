@@ -9,11 +9,11 @@ export const getNewPasswords = (form: HTMLFormElement) => {
 
 export const getPasswordValidationError = (password: string, confirm: string): string | null => {
   if (password.length < 12 || password.length > 100) {
-    return 'Password must contain from 12 to 100 characters';
+    return 'Пароль должен содержать от 12 до 100 символов';
   }
 
   if (password !== confirm) {
-    return 'Passwords do not match';
+    return 'Пароли не совпадают';
   }
 
   return null;

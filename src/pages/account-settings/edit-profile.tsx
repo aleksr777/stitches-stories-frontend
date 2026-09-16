@@ -34,7 +34,8 @@ const EditProfile = () => {
         const currentUser = await getCurrentUserRequest();
         if (isMounted) applyUser(currentUser);
       } catch (err: unknown) {
-        if (isMounted) setError(err instanceof Error ? err.message : 'Failed to load profile');
+        if (isMounted)
+          setError(err instanceof Error ? err.message : 'Не удалось загрузить профиль');
       } finally {
         if (isMounted) setIsLoading(false);
       }
@@ -56,18 +57,18 @@ const EditProfile = () => {
     const patch: UpdateCurrentUserData = {};
 
     if (nextNickname !== (user.nickname ?? '')) {
-      if (!nextNickname) return setError('Nickname cannot be empty');
+      if (!nextNickname) return setError('Укажите псевдоним');
       patch.nickname = nextNickname;
     }
     if (nextName !== (user.name ?? '')) {
-      if (!nextName) return setError('Name cannot be empty');
+      if (!nextName) return setError('Укажите имя');
       patch.name = nextName;
     }
     if (nextAge !== (user.age === null ? '' : String(user.age))) {
-      if (!nextAge) return setError('Age cannot be empty');
+      if (!nextAge) return setError('Укажите возраст');
       const parsedAge = Number(nextAge);
       if (!Number.isInteger(parsedAge) || parsedAge < 0 || parsedAge > 200) {
-        return setError('Age must be an integer from 0 to 200');
+        return setError('Укажите целый возраст от 0 до 200');
       }
       patch.age = parsedAge;
     }
@@ -83,20 +84,20 @@ const EditProfile = () => {
       setMessage(null);
       setIsSubmitting(true);
       applyUser(await updateCurrentUserRequest(patch));
-      setMessage('Profile updated');
+      setMessage('Профиль обновлён');
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Profile update failed');
+      setError(err instanceof Error ? err.message : 'Не удалось обновить профиль');
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  if (isLoading) return <p>Loading profile...</p>;
+  if (isLoading) return <p>Загружаем профиль…</p>;
   if (error && !user) return <p>{error}</p>;
 
   return (
     <section className={styles.wrapper}>
-      <h2 className={styles.title}>Edit profile</h2>
+      <h2 className={styles.title}>Мои данные</h2>
       <EditProfileForm
         nickname={nickname}
         name={name}
@@ -110,7 +111,7 @@ const EditProfile = () => {
         onSubmit={handleSubmit}
       />
       <Link className={styles.link} to="/users/me">
-        Back to profile
+        Вернуться в профиль
       </Link>
     </section>
   );

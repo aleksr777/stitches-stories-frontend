@@ -10,7 +10,7 @@ type PasswordNewFormProps = {
 const PasswordNewForm = ({ error, isSubmitting, onSubmit }: PasswordNewFormProps) => (
   <form className={styles.form} onSubmit={onSubmit}>
     <label className={styles.label}>
-      New password
+      Новый пароль
       <input
         className={styles.input}
         name="newPassword"
@@ -23,7 +23,7 @@ const PasswordNewForm = ({ error, isSubmitting, onSubmit }: PasswordNewFormProps
     </label>
 
     <label className={styles.label}>
-      Repeat new password
+      Повторите новый пароль
       <input
         className={styles.input}
         name="newPasswordConfirm"
@@ -38,7 +38,7 @@ const PasswordNewForm = ({ error, isSubmitting, onSubmit }: PasswordNewFormProps
     {error && <p className={styles.error}>{error}</p>}
 
     <button className={styles.button} type="submit" disabled={isSubmitting}>
-      {isSubmitting ? 'Saving...' : 'Change password'}
+      {isSubmitting ? 'Сохраняем…' : 'Сменить пароль'}
     </button>
   </form>
 );

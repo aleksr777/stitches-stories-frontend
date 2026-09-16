@@ -30,11 +30,11 @@
 }
 
 .link {
-  color: #00e;
+  color: var(--accent);
 }
 
 .dangerLink {
-  color: #b00000;
+  color: #963745;
 }
 
 .link:hover,
@@ -53,7 +53,7 @@
   box-sizing: border-box;
   padding: 10px;
   width: 100%;
-  border: 1px solid #8ea6ff;
+  border: 1px solid var(--accent);
   font-size: 16px;
 }
 
@@ -67,16 +67,18 @@
 }
 
 .button {
-  background-color: #8ea6ff;
+  color: white;
+  border-radius: 5px;
+  background-color: var(--accent);
 }
 
 .secondaryButton {
-  border: 1px solid #8ea6ff;
+  border: 1px solid var(--accent);
   background-color: transparent;
 }
 
 .dangerButton {
-  background-color: #b00000;
+  background-color: #963745;
   color: #fff;
 }
 
@@ -96,5 +98,5 @@
 
 .error,
 .warning {
-  color: #b00000;
+  color: #963745;
 }

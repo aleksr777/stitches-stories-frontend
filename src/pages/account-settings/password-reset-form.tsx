@@ -12,7 +12,7 @@ const PasswordResetForm = ({ error, isSubmitting, onSubmit }: PasswordResetFormP
     <p className={styles.message}>Confirmation code sent to your account email.</p>
 
     <label className={styles.label}>
-      Confirmation code
+      Код подтверждения
       <input
         className={styles.input}
         name="code"
@@ -26,7 +26,7 @@ const PasswordResetForm = ({ error, isSubmitting, onSubmit }: PasswordResetFormP
     </label>
 
     <label className={styles.label}>
-      New password
+      Новый пароль
       <input
         className={styles.input}
         name="newPassword"
@@ -39,7 +39,7 @@ const PasswordResetForm = ({ error, isSubmitting, onSubmit }: PasswordResetFormP
     </label>
 
     <label className={styles.label}>
-      Repeat new password
+      Повторите новый пароль
       <input
         className={styles.input}
         name="newPasswordConfirm"
@@ -54,7 +54,7 @@ const PasswordResetForm = ({ error, isSubmitting, onSubmit }: PasswordResetFormP
     {error && <p className={styles.error}>{error}</p>}
 
     <button className={styles.button} type="submit" disabled={isSubmitting}>
-      {isSubmitting ? 'Saving...' : 'Change password'}
+      {isSubmitting ? 'Сохраняем…' : 'Сменить пароль'}
     </button>
   </form>
 );

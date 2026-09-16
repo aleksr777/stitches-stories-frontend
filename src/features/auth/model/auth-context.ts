@@ -9,7 +9,11 @@ export type AuthContextValue = {
   isAuth: boolean;
   isInitializing: boolean;
   login: (email: string, password: string) => Promise<LoginOutcome>;
-  requestRegistration: (email: string, password: string) => Promise<VerificationRequestResult>;
+  requestRegistration: (
+    email: string,
+    password: string,
+    details?: { name: string; documents: { id: string; version: string; sha256: string }[] },
+  ) => Promise<VerificationRequestResult>;
   resendRegistration: (email: string) => Promise<VerificationRequestResult>;
   confirmRegistration: (code: string, email: string) => Promise<void>;
   requestPasswordReset: (email: string) => Promise<VerificationRequestResult>;

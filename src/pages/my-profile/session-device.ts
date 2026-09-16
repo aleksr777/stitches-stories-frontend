@@ -13,11 +13,11 @@ const getOsName = (userAgent: string) => {
   if (/Windows NT/.test(userAgent)) return 'Windows';
   if (/(Macintosh|Mac OS X)/.test(userAgent)) return 'macOS';
   if (/Linux/.test(userAgent)) return 'Linux';
-  return 'Unknown device';
+  return 'Неизвестное устройство';
 };
 
 export const getSessionDeviceLabel = (userAgent: string | null) => {
-  if (!userAgent) return 'Unknown device';
+  if (!userAgent) return 'Неизвестное устройство';
   return `${getBrowserName(userAgent)} · ${getOsName(userAgent)}`;
 };
 
