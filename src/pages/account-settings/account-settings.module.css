@@ -1,0 +1,100 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+}
+
+.title {
+  margin: 0;
+  padding: 0;
+  text-align: center;
+  font-size: 25px;
+}
+
+.links,
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  max-width: 360px;
+}
+
+.link,
+.dangerLink {
+  width: fit-content;
+  text-decoration: none;
+  font-size: 18px;
+}
+
+.link {
+  color: #00e;
+}
+
+.dangerLink {
+  color: #b00000;
+}
+
+.link:hover,
+.dangerLink:hover {
+  opacity: 0.7;
+}
+
+.label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 16px;
+}
+
+.input {
+  box-sizing: border-box;
+  padding: 10px;
+  width: 100%;
+  border: 1px solid #8ea6ff;
+  font-size: 16px;
+}
+
+.button,
+.secondaryButton,
+.dangerButton {
+  padding: 10px;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.button {
+  background-color: #8ea6ff;
+}
+
+.secondaryButton {
+  border: 1px solid #8ea6ff;
+  background-color: transparent;
+}
+
+.dangerButton {
+  background-color: #b00000;
+  color: #fff;
+}
+
+.button:disabled,
+.secondaryButton:disabled,
+.dangerButton:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.error,
+.message,
+.warning {
+  margin: 0;
+  font-size: 14px;
+}
+
+.error,
+.warning {
+  color: #b00000;
+}

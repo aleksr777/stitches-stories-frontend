@@ -1,0 +1,140 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  max-width: 760px;
+}
+
+.wrapper h2,
+.wrapper p {
+  margin: 0;
+}
+
+.title {
+  margin: 0;
+  padding: 0;
+  text-align: center;
+  font-size: 25px;
+}
+
+.searchForm {
+  display: flex;
+  gap: 8px;
+}
+
+.searchForm input,
+.reasonField input {
+  box-sizing: border-box;
+  padding: 10px;
+  border: 1px solid #8ea6ff;
+  font-size: 16px;
+}
+
+.searchForm input {
+  flex: 1;
+}
+
+.searchForm button,
+.actionSection button,
+.actions button,
+.pagination button {
+  padding: 10px;
+  border: none;
+  background-color: #8ea6ff;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.searchForm button:disabled,
+.actionSection button:disabled,
+.actions button:disabled,
+.pagination button:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.userList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.userCard {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid #d0d0d0;
+}
+
+.userData {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.actionLink,
+.actionButton {
+  width: fit-content;
+  text-decoration: none;
+  font-size: 16px;
+}
+
+.actionLink {
+  color: #00e;
+}
+
+.actionButton {
+  padding: 10px;
+  background-color: #8ea6ff;
+  color: #000;
+}
+
+.actionLink:hover,
+.actionButton:hover {
+  opacity: 0.7;
+}
+
+.actionSection,
+.confirmPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.actionSection {
+  align-items: flex-start;
+}
+
+.confirmPanel {
+  width: 100%;
+  padding: 16px;
+  border: 1px solid #d0d0d0;
+}
+
+.reasonField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  max-width: 420px;
+}
+
+.actions,
+.pagination {
+  display: flex;
+  gap: 8px;
+}
+
+.pagination {
+  align-items: center;
+  justify-content: space-between;
+}
+
+.error {
+  color: #b00000;
+}

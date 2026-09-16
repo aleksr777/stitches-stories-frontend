@@ -1,0 +1,91 @@
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.title {
+  margin: 0;
+  font-size: 25px;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px;
+  border: 1px solid #d5d5d5;
+  border-radius: 8px;
+}
+
+.cardHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.current {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background-color: #e7edff;
+  font-size: 13px;
+}
+
+.terminateButton,
+.terminateAllButton {
+  width: fit-content;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.terminateButton {
+  margin-top: 6px;
+  padding: 8px 12px;
+  background-color: #f1d4d4;
+}
+
+.terminateAllButton {
+  padding: 9px 12px;
+  background-color: #f1d4d4;
+}
+
+.terminateButton:disabled,
+.terminateAllButton:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.error {
+  margin: 0;
+  color: #b00000;
+  font-size: 14px;
+}
+
+.backLink {
+  width: fit-content;
+  color: #00e;
+  text-decoration: none;
+  font-size: 18px;
+}
+
+.backLink:hover {
+  opacity: 0.7;
+}
