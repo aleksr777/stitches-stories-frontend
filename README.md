@@ -2,7 +2,7 @@
 
 React + Vite frontend for the routing and authorization template.
 
-Companion backend: [nestjs-routing-authorization](https://github.com/aleksr777/nestjs-routing-authorization)
+Companion backend: [stitches-stories-backend](https://github.com/aleksr777/stitches-stories-backend)
 
 ## Features
 
