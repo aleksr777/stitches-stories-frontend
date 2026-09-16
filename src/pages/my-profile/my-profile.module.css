@@ -1,0 +1,53 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.title {
+  margin: 0;
+  padding: 0;
+  text-align: center;
+  font-size: 25px;
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.settingsLink,
+.dangerLink {
+  width: fit-content;
+  text-decoration: none;
+  font-size: 18px;
+}
+
+.settingsLink {
+  color: #00e;
+}
+
+.dangerLink {
+  color: #b00000;
+}
+
+.settingsLink:hover,
+.dangerLink:hover {
+  opacity: 0.7;
+}
+
+.logoutButton {
+  align-self: flex-start;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 6px;
+  background-color: #8ea6ff;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.logoutButton:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
