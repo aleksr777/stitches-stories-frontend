@@ -3,6 +3,7 @@ import { apiRequest } from '../shared/api/api-client';
 import { useStore } from './context';
 import { money, statusNames, type OrderRequest, type Product } from './types';
 import Modal from './modal';
+import ProductImageEditor, { type EditableProductImage } from './product-image-editor';
 const blank: Product = {
   id: '',
   slug: '',
@@ -24,9 +25,15 @@ const Admin = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<OrderRequest[]>([]);
   const [editing, setEditing] = useState<Product | null>(null);
+  const [images, setImages] = useState<EditableProductImage[]>([]);
   const [error, setError] = useState('');
   const [revision, setRevision] = useState(0);
   const [busy, setBusy] = useState(false);
+  const edit = (product: Product) => {
+    setError('');
+    setImages(product.images.map((path) => ({ key: path, path })));
+    setEditing(product);
+  };
   useEffect(() => {
     let active = true;
     Promise.all([
@@ -50,6 +57,13 @@ const Admin = () => {
     e.preventDefault();
     if (!editing) return;
     const data = new FormData(e.currentTarget);
+    const upload = new FormData();
+    let fileIndex = 0;
+    const paths = images.map((image) => {
+      if (!image.file) return image.path;
+      upload.append('files', image.file);
+      return 'upload:' + fileIndex++;
+    });
     const body = {
       slug: String(data.get('slug')),
       name: String(data.get('name')),
@@ -59,10 +73,7 @@ const Admin = () => {
       materials: String(data.get('materials')),
       dimensions: String(data.get('dimensions')),
       productionTime: String(data.get('productionTime')),
-      images: String(data.get('images') ?? '')
-        .split('\n')
-        .map((v) => v.trim())
-        .filter(Boolean),
+      images: paths,
       stock: Number(data.get('stock')),
       featured: !!data.get('featured'),
       active: !!data.get('active'),
@@ -71,11 +82,14 @@ const Admin = () => {
     setBusy(true);
     setError('');
     try {
+      upload.append('data', JSON.stringify(body));
       await apiRequest('/shop/admin/products' + (editing.id ? '/' + editing.id : ''), {
         method: editing.id ? 'PATCH' : 'POST',
-        body: JSON.stringify(body),
+        body: upload,
+        timeoutMs: 120000,
       });
       setEditing(null);
+      setImages([]);
       setRevision((v) => v + 1);
       retry();
     } catch (err) {
@@ -110,7 +124,7 @@ const Admin = () => {
       <section className="panel">
         <div className="section-heading">
           <h2>Изделия</h2>
-          <button className="button" onClick={() => setEditing({ ...blank })}>
+          <button className="button" disabled={busy} onClick={() => edit({ ...blank })}>
             Новое изделие
           </button>
         </div>
@@ -123,7 +137,7 @@ const Admin = () => {
                 {p.isDemo ? ' · Демо' : ''}
               </p>
             </div>
-            <button className="text-link" onClick={() => setEditing(p)}>
+            <button className="text-link" disabled={busy} onClick={() => edit(p)}>
               Изменить
             </button>
           </article>
@@ -168,103 +182,104 @@ const Admin = () => {
       {editing && (
         <Modal
           title={editing.id ? 'Редактирование изделия' : 'Новое изделие'}
-          onClose={() => setEditing(null)}
+          onClose={() => {
+            if (!busy) {
+              setEditing(null);
+              setImages([]);
+            }
+          }}
         >
           <form className="form" onSubmit={(e) => void save(e)}>
-            <label>
-              Название
-              <input
-                name="name"
-                defaultValue={editing.name}
-                minLength={2}
-                maxLength={200}
-                required
-              />
-            </label>
-            <label>
-              Адрес в каталоге
-              <input
-                name="slug"
-                defaultValue={editing.slug}
-                pattern="[a-z0-9]+(-[a-z0-9]+)*"
-                maxLength={100}
-                required
-              />
-            </label>
-            <label>
-              Категория
-              <select name="category" defaultValue={editing.category}>
-                <option value="keychains">Брелок</option>
-                <option value="covers">Обложка</option>
-              </select>
-            </label>
-            <label>
-              Цена, ₽
-              <input
-                name="priceRub"
-                type="number"
-                min={1}
-                max={1000000}
-                defaultValue={editing.priceRub}
-                required
-              />
-            </label>
-            <label>
-              Описание
-              <textarea
-                name="description"
-                defaultValue={editing.description}
-                minLength={10}
-                maxLength={6000}
-                required
-              />
-            </label>
-            {(['materials', 'dimensions', 'productionTime'] as const).map((key, i) => (
-              <label key={key}>
-                {['Материалы', 'Размеры', 'Срок изготовления'][i]}
+            <fieldset className="product-editor-fields" disabled={busy}>
+              <label>
+                Название
                 <input
-                  name={key}
-                  defaultValue={editing[key]}
+                  name="name"
+                  defaultValue={editing.name}
                   minLength={2}
-                  maxLength={key === 'materials' ? 250 : key === 'dimensions' ? 100 : 160}
+                  maxLength={200}
                   required
                 />
               </label>
-            ))}
-            <label>
-              Фотографии: по одному пути /images/имя.jpg в строке
-              <textarea
-                name="images"
-                defaultValue={editing.images.join('\n')}
-                placeholder="/images/quiet-garden.jpg"
-              />
-            </label>
-            <p className="muted">
-              Оригиналы размещаются в папке public/images фронтенда. Внешние ссылки не принимаются.
-            </p>
-            <label>
-              Доступное количество
-              <input
-                type="number"
-                name="stock"
-                min={0}
-                max={10000}
-                defaultValue={editing.stock}
-                required
-              />
-            </label>
-            {(['featured', 'active', 'isDemo'] as const).map((key, i) => (
-              <label className="check" key={key}>
-                <input name={key} type="checkbox" defaultChecked={editing[key]} />
-                <span>
-                  {['Показывать на главной', 'Показывать в каталоге', 'Демонстрационный товар'][i]}
-                </span>
+              <label>
+                Адрес в каталоге
+                <input
+                  name="slug"
+                  defaultValue={editing.slug}
+                  pattern="[a-z0-9]+(-[a-z0-9]+)*"
+                  maxLength={100}
+                  required
+                />
               </label>
-            ))}
-            {error && <p role="alert">{error}</p>}
-            <button className="button" disabled={busy}>
-              {busy ? 'Сохраняем…' : 'Сохранить изделие'}
-            </button>
+              <label>
+                Категория
+                <select name="category" defaultValue={editing.category}>
+                  <option value="keychains">Брелок</option>
+                  <option value="covers">Обложка</option>
+                </select>
+              </label>
+              <label>
+                Цена, ₽
+                <input
+                  name="priceRub"
+                  type="number"
+                  min={1}
+                  max={1000000}
+                  defaultValue={editing.priceRub}
+                  required
+                />
+              </label>
+              <label>
+                Описание
+                <textarea
+                  name="description"
+                  defaultValue={editing.description}
+                  minLength={10}
+                  maxLength={6000}
+                  required
+                />
+              </label>
+              {(['materials', 'dimensions', 'productionTime'] as const).map((key, i) => (
+                <label key={key}>
+                  {['Материалы', 'Размеры', 'Срок изготовления'][i]}
+                  <input
+                    name={key}
+                    defaultValue={editing[key]}
+                    minLength={2}
+                    maxLength={key === 'materials' ? 250 : key === 'dimensions' ? 100 : 160}
+                    required
+                  />
+                </label>
+              ))}
+              <ProductImageEditor images={images} onChange={setImages} disabled={busy} />
+              <label>
+                Доступное количество
+                <input
+                  type="number"
+                  name="stock"
+                  min={0}
+                  max={10000}
+                  defaultValue={editing.stock}
+                  required
+                />
+              </label>
+              {(['featured', 'active', 'isDemo'] as const).map((key, i) => (
+                <label className="check" key={key}>
+                  <input name={key} type="checkbox" defaultChecked={editing[key]} />
+                  <span>
+                    {
+                      ['Показывать на главной', 'Показывать в каталоге', 'Демонстрационный товар'][
+                        i
+                      ]
+                    }
+                  </span>
+                </label>
+              ))}
+              {error && <p role="alert">{error}</p>}
+              <button className="button" disabled={busy}>
+                {busy ? 'Сохраняем изделие и фотографии…' : 'Сохранить изделие'}
+              </button>
+            </fieldset>
           </form>
         </Modal>
       )}

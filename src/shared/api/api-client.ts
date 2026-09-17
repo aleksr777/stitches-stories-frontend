@@ -11,6 +11,7 @@ import {
 
 export { getAttemptsRemaining, getRetryAfterSeconds, isVerificationLocked } from './api-error';
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:5174/api';
+export const apiUrl = (path: string): string => API_URL + path;
 const REFRESH_LOCK_NAME = 'auth-refresh-token';
 type AuthMode = 'access' | 'none';
 
@@ -19,6 +20,7 @@ type ApiRequestOptions = Omit<RequestInit, 'headers'> & {
   headers?: Record<string, string>;
   retry?: boolean;
   timeoutMs?: number;
+  responseType?: 'json' | 'blob';
 };
 
 const parseResponseBody = async (response: Response): Promise<unknown> => {
@@ -71,6 +73,7 @@ export const apiRequest = async <T>(path: string, options: ApiRequestOptions = {
     retry = true,
     headers = {},
     timeoutMs = DEFAULT_TIMEOUT_MS,
+    responseType = 'json',
     ...rest
   } = options;
 
@@ -83,14 +86,17 @@ export const apiRequest = async <T>(path: string, options: ApiRequestOptions = {
       ...rest,
       credentials: 'include',
       headers: {
-        'Content-Type': 'application/json',
+        ...(rest.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }),
         ...headers,
         ...(auth === 'access' && accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       },
     },
     timeoutMs,
   );
-  const payload = await parseResponseBody(response);
+  const payload =
+    response.ok && responseType === 'blob'
+      ? await response.blob()
+      : await parseResponseBody(response);
 
   if (shouldRefreshAfterResponse({ status: response.status, auth, retry })) {
     await refreshAuthTokens();

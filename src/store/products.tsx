@@ -4,19 +4,56 @@ import { useAuth } from '../features/auth/model/use-auth';
 import { useStore } from './context';
 import Icon from './icons';
 import { money, type Product } from './types';
-export const ProductImage = ({ product }: { product: Product }) =>
-  product.images[0] ? (
+import { productImageUrl } from './product-image-url';
+import './product-images.css';
+export const ProductImage = ({
+  product,
+  path = product.images[0],
+}: {
+  product: Product;
+  path?: string;
+}) => {
+  const [failed, setFailed] = useState('');
+  const url = path ? productImageUrl(path) : '';
+  return url && failed !== url ? (
     <img
       className="product-photo"
-      src={import.meta.env.BASE_URL + product.images[0].replace(/^\//, '')}
+      src={url}
       alt={product.name}
+      loading="lazy"
+      decoding="async"
+      onError={() => setFailed(url)}
     />
   ) : (
     <div className={'photo-placeholder ' + product.category}>
       <Icon name="camera" />
-      <span>Здесь будет фотография изделия</span>
+      <span>{url ? 'Фотография временно недоступна' : 'Здесь будет фотография изделия'}</span>
     </div>
   );
+};
+const ProductGallery = ({ product }: { product: Product }) => {
+  const [selected, setSelected] = useState(0);
+  return (
+    <div className="product-gallery">
+      <ProductImage product={product} path={product.images[selected] ?? product.images[0]} />
+      {product.images.length > 1 && (
+        <div className="product-thumbnails" role="group" aria-label="Фотографии изделия">
+          {product.images.map((path, index) => (
+            <button
+              type="button"
+              key={path}
+              aria-label={'Показать фотографию ' + (index + 1)}
+              aria-pressed={selected === index}
+              onClick={() => setSelected(index)}
+            >
+              <img src={productImageUrl(path)} alt="" loading="lazy" />
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 export const ProductCard = ({ product }: { product: Product }) => {
   const { favorites, toggleFavorite } = useStore();
   const { isAuth } = useAuth();
@@ -169,7 +206,7 @@ export const ProductPage = () => {
         ← К коллекции
       </Link>
       <div className="product-detail">
-        <ProductImage product={product} />
+        <ProductGallery key={product.id} product={product} />
         <div>
           <p className="eyebrow">Вышито с теплом</p>
           <h1>{product.name}</h1>

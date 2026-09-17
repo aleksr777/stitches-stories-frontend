@@ -22,7 +22,7 @@ const buildContentSecurityPolicy = (apiOrigin: string, production: boolean): str
     "default-src 'self'",
     "script-src 'self'",
     "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data:",
+    `img-src 'self' data: blob: ${apiOrigin}`,
     "font-src 'self'",
     `connect-src 'self' ${apiOrigin}${developmentSockets}`,
     "object-src 'none'",
