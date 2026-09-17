@@ -8,6 +8,8 @@ import { Catalog, ProductPage } from './store/products';
 import Checkout from './store/checkout';
 import Profile from './store/profile';
 import Admin from './store/admin';
+import Journal from './store/journal';
+import JournalAdmin from './store/journal-admin';
 import { DocumentsPage } from './store/legal';
 import { NewsletterAction } from './store/newsletter';
 import ActiveSessions from './pages/my-profile/active-sessions';
@@ -28,6 +30,7 @@ const App = () => (
         <Route path="cart" element={<Checkout />} />
         <Route path="checkout" element={<Checkout />} />
         <Route path="about" element={<About />} />
+        <Route path="journal" element={<Journal />} />
         <Route path="delivery" element={<Delivery />} />
         <Route path="documents" element={<DocumentsPage />} />
         <Route path="auth/:mode" element={<Home />} />
@@ -78,6 +81,7 @@ const App = () => (
           />
           <Route element={<AdminRoute />}>
             <Route path="admin/shop" element={<Admin />} />
+            <Route path="admin/journal" element={<JournalAdmin />} />
             <Route
               path="admin/users"
               element={

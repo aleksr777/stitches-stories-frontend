@@ -1,0 +1,127 @@
+.journal-page > .lead,
+.journal-admin > .lead {
+  max-width: 760px;
+  margin-bottom: 2.5rem;
+}
+
+.journal-wall {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 2rem;
+}
+
+.journal-card {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 1.75rem;
+  background: #fdfaf6;
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+.journal-byline {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  color: var(--muted);
+  font-size: 0.75rem;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 1rem;
+}
+
+.journal-text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  line-height: 1.85;
+  font-size: 0.9rem;
+}
+
+.journal-text summary {
+  color: var(--accent);
+  cursor: pointer;
+  padding-block: 0.5rem;
+}
+
+.journal-gallery {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem;
+  margin-block: 1.25rem;
+}
+
+.journal-gallery img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 600px;
+  object-fit: contain;
+  border-radius: 5px;
+  background: #f2ebe2;
+}
+
+.journal-gallery img:first-child {
+  grid-column: 1 / -1;
+}
+
+.journal-gallery > p {
+  grid-column: 1 / -1;
+}
+
+.journal-notice {
+  background: #f2ebe2;
+  border-left: 3px solid var(--accent);
+  padding: 1rem;
+  overflow-wrap: anywhere;
+  font-size: 0.85rem;
+}
+
+.journal-source {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 1rem;
+  margin-block: 1rem 1.75rem;
+}
+
+.journal-source label {
+  flex: 1 1 260px;
+  min-width: 0;
+}
+
+.journal-tabs {
+  margin-block: 2rem;
+}
+
+.journal-more {
+  margin-top: 2rem;
+}
+
+.journal-empty {
+  max-width: 720px;
+  padding-block: 3rem;
+}
+
+@media (width <= 700px) {
+  .journal-wall {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.25rem;
+  }
+
+  .journal-card {
+    padding: 1.1rem;
+  }
+
+  .journal-source .button {
+    width: 100%;
+  }
+
+  .journal-tabs {
+    gap: 0.5rem;
+  }
+
+  .journal-tabs .button {
+    padding: 0.65rem 0.8rem;
+  }
+}

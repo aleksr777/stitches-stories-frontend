@@ -50,6 +50,9 @@ const Layout = () => {
           <NavLink onClick={() => setMenu(false)} to="/about">
             О мастерской
           </NavLink>
+          <NavLink onClick={() => setMenu(false)} to="/journal">
+            Журнал
+          </NavLink>
           <NavLink onClick={() => setMenu(false)} to="/delivery">
             Доставка и оплата
           </NavLink>
@@ -122,6 +125,7 @@ const Layout = () => {
           <div>
             <h3>Магазин</h3>
             <Link to="/catalog">Коллекция</Link>
+            <Link to="/journal">Журнал мастерской</Link>
             <Link to="/catalog?category=keychains">Брелоки</Link>
             <Link to="/catalog?category=covers">Обложки на паспорт</Link>
           </div>

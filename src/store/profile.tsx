@@ -93,6 +93,7 @@ const Profile = () => {
             {user.role === 'admin' && (
               <>
                 <Link to="/admin/shop">Управление магазином</Link>
+                <Link to="/admin/journal">Публикации из VK</Link>
                 <Link to="/admin/users">Пользователи</Link>
               </>
             )}
