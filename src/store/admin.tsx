@@ -1,5 +1,4 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { Link } from 'react-router-dom';
 import { apiRequest } from '../shared/api/api-client';
 import { useStore } from './context';
 import { money, statusNames, type OrderRequest, type Product } from './types';
@@ -103,11 +102,6 @@ const Admin = () => {
     <section className="page">
       <p className="eyebrow">Мастерская</p>
       <h1>Управление магазином</h1>
-      <p>
-        <Link className="text-link" to="/admin/journal">
-          Публикации из VK →
-        </Link>
-      </p>
       {error && (
         <p role="alert" className="error">
           {error}
