@@ -76,7 +76,7 @@ const AuthDialog = ({ mode: initialMode, close }: { mode: AuthMode; close: () =>
       } else if (mode === 'registration') await auth.confirmRegistration(code, email);
       else await auth.confirmPasswordReset(code, password, email);
       close();
-      navigate('/users/me', { replace: true });
+      navigate(mode === 'registration' ? '/catalog' : '/users/me', { replace: true });
     } catch (err) {
       verification.applyRetryError(err);
       verification.applyAttemptError(err);
