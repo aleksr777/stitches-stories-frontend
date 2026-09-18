@@ -10,6 +10,7 @@ import {
 } from 'react';
 import { createPortal } from 'react-dom';
 
+const OPEN_DURATION_MS = 400;
 const CLOSE_DURATION_MS = 400;
 const ModalCloseContext = createContext<(() => void) | null>(null);
 const openedDialogs: HTMLDialogElement[] = [];
@@ -105,12 +106,14 @@ const Modal = ({
 }: PropsWithChildren<{ title: string; onClose: () => void; className?: string }>) => {
   const ref = useRef<HTMLDialogElement>(null);
   const closeTimer = useRef<number | null>(null);
+  const openTimer = useRef<number | null>(null);
   const openFrame = useRef<number | null>(null);
+  const canClose = useRef(false);
   const label = useId();
   const [state, setState] = useState<'opening' | 'open' | 'closing'>('opening');
 
   const requestClose = () => {
-    if (state === 'closing') return;
+    if (!canClose.current || state === 'closing') return;
     setState('closing');
     closeTimer.current = window.setTimeout(onClose, CLOSE_DURATION_MS);
   };
@@ -121,7 +124,12 @@ const Modal = ({
     dialog?.showModal();
     if (dialog) openedDialogs.push(dialog);
     if (openedDialogs.length === 1) lockPageScroll();
-    openFrame.current = window.requestAnimationFrame(() => setState('open'));
+    openFrame.current = window.requestAnimationFrame(() => {
+      setState('open');
+      openTimer.current = window.setTimeout(() => {
+        canClose.current = true;
+      }, OPEN_DURATION_MS);
+    });
 
     let touchY: number | null = null;
     const isTopmost = () => openedDialogs.at(-1) === dialog;
@@ -176,6 +184,7 @@ const Modal = ({
 
     return () => {
       if (openFrame.current !== null) window.cancelAnimationFrame(openFrame.current);
+      if (openTimer.current !== null) window.clearTimeout(openTimer.current);
       if (closeTimer.current !== null) window.clearTimeout(closeTimer.current);
       document.removeEventListener('wheel', preventBackgroundWheel);
       document.removeEventListener('touchstart', rememberTouch);
