@@ -29,6 +29,7 @@ const lockPageScroll = () => {
   if (pageScrollLock) return;
   const root = document.documentElement;
   const body = document.body;
+  const bodyRect = body.getBoundingClientRect();
   pageScrollLock = {
     x: window.scrollX,
     y: window.scrollY,
@@ -43,10 +44,10 @@ const lockPageScroll = () => {
   root.style.minHeight = root.scrollHeight + 'px';
   root.style.overflowY = 'scroll';
   body.style.position = 'fixed';
-  body.style.top = -pageScrollLock.y + 'px';
-  body.style.left = -pageScrollLock.x + 'px';
-  body.style.right = '0';
-  body.style.width = '100%';
+  body.style.top = bodyRect.top + 'px';
+  body.style.left = bodyRect.left + 'px';
+  body.style.right = 'auto';
+  body.style.width = bodyRect.width + 'px';
 };
 
 const unlockPageScroll = () => {
@@ -55,14 +56,14 @@ const unlockPageScroll = () => {
   pageScrollLock = null;
   const root = document.documentElement;
   const body = document.body;
-  root.style.minHeight = lock.rootMinHeight;
-  root.style.overflowY = lock.rootOverflowY;
+  window.scrollTo(lock.x, lock.y);
   body.style.position = lock.bodyPosition;
   body.style.top = lock.bodyTop;
   body.style.left = lock.bodyLeft;
   body.style.right = lock.bodyRight;
   body.style.width = lock.bodyWidth;
-  window.scrollTo(lock.x, lock.y);
+  root.style.minHeight = lock.rootMinHeight;
+  root.style.overflowY = lock.rootOverflowY;
 };
 
 const canScrollWithin = (target: EventTarget | null, dialog: HTMLDialogElement, deltaY: number) => {
@@ -186,7 +187,7 @@ const Modal = ({
       }
       if (!openedDialogs.length) unlockPageScroll();
       dialog?.close();
-      priorFocus?.focus();
+      priorFocus?.focus({ preventScroll: true });
     };
   }, []);
 
