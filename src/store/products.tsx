@@ -116,54 +116,66 @@ export const Catalog = ({ favoritesOnly = false }: { favoritesOnly?: boolean }) 
     .sort((a, b) =>
       sort === 'asc' ? a.priceRub - b.priceRub : sort === 'desc' ? b.priceRub - a.priceRub : 0,
     );
+  const catalogIsEmpty = !favoritesOnly && products.length === 0;
   return (
     <section className="page">
       <p className="eyebrow">Выбрано с теплом</p>
       <h1>{favoritesOnly ? 'Ваше избранное' : 'Найдите свою историю'}</h1>
       <p className="lead">Брелоки и обложки, в которых живёт немного тепла.</p>
-      <div className="catalog-tools">
-        <div className="tabs">
-          {[
-            ['', 'Все изделия'],
-            ['keychains', 'Брелоки'],
-            ['covers', 'Обложки'],
-          ].map(([id, label]) => (
-            <button
-              key={id}
-              className={category === id ? 'active' : ''}
-              onClick={() => {
+      {!catalogIsEmpty && (
+        <div className="catalog-tools">
+          <div className="tabs">
+            {[
+              ['', 'Все изделия'],
+              ['keychains', 'Брелоки'],
+              ['covers', 'Обложки'],
+            ].map(([id, label]) => (
+              <button
+                key={id}
+                className={category === id ? 'active' : ''}
+                onClick={() => {
+                  const next = new URLSearchParams(params);
+                  if (id) next.set('category', id);
+                  else next.delete('category');
+                  setParams(next);
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          <label className="search-field">
+            <Icon name="search" />
+            <input
+              aria-label="Поиск изделия"
+              placeholder="Найти что-то своё"
+              value={query}
+              onChange={(e) => {
                 const next = new URLSearchParams(params);
-                if (id) next.set('category', id);
-                else next.delete('category');
-                setParams(next);
+                if (e.target.value) next.set('q', e.target.value);
+                else next.delete('q');
+                setParams(next, { replace: true });
               }}
-            >
-              {label}
-            </button>
-          ))}
+            />
+          </label>
+          <select aria-label="Сортировка" value={sort} onChange={(e) => setSort(e.target.value)}>
+            <option value="default">Подборка мастерской</option>
+            <option value="asc">Сначала дешевле</option>
+            <option value="desc">Сначала дороже</option>
+          </select>
         </div>
-        <label className="search-field">
-          <Icon name="search" />
-          <input
-            aria-label="Поиск изделия"
-            placeholder="Найти что-то своё"
-            value={query}
-            onChange={(e) => {
-              const next = new URLSearchParams(params);
-              if (e.target.value) next.set('q', e.target.value);
-              else next.delete('q');
-              setParams(next, { replace: true });
-            }}
-          />
-        </label>
-        <select aria-label="Сортировка" value={sort} onChange={(e) => setSort(e.target.value)}>
-          <option value="default">Подборка мастерской</option>
-          <option value="asc">Сначала дешевле</option>
-          <option value="desc">Сначала дороже</option>
-        </select>
-      </div>
+      )}
       {loading ? (
         <p role="status">Загружаем коллекцию…</p>
+      ) : catalogIsEmpty ? (
+        <div className="empty collection-empty catalog-empty">
+          <p className="eyebrow">Скоро здесь будет тепло</p>
+          <h2>Коллекция скоро появится</h2>
+          <p>
+            Мы бережно готовим новые изделия с вышивкой. Загляните чуть позже — здесь появятся новые
+            истории.
+          </p>
+        </div>
       ) : filtered.length ? (
         <div className="product-grid">
           {filtered.map((p) => (

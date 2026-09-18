@@ -59,10 +59,12 @@ const ProductImageEditor = ({
   images,
   onChange,
   disabled,
+  required = false,
 }: {
   images: EditableProductImage[];
   onChange: (images: EditableProductImage[]) => void;
   disabled: boolean;
+  required?: boolean;
 }) => {
   const [error, setError] = useState('');
   const choose = (event: ChangeEvent<HTMLInputElement>) => {
@@ -92,19 +94,22 @@ const ProductImageEditor = ({
   return (
     <section className="product-image-editor" aria-label="Фотографии изделия">
       <label>
-        Добавить фотографии
+        Добавить фотографии {required && <span aria-hidden="true">*</span>}
         <input
           type="file"
           accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp"
           multiple
           disabled={disabled}
           onChange={choose}
+          aria-label="Добавить фотографии"
           aria-describedby="product-photo-help"
+          aria-required={required}
         />
       </label>
       <p id="product-photo-help" className="muted">
-        До 8 фотографий JPEG, PNG или WebP, до 8 МБ каждая. Первое фото — основное. Фотографии
-        загрузятся при сохранении изделия.
+        {required && 'Для нового изделия добавьте хотя бы одну фотографию. '}До 8 фотографий JPEG,
+        PNG или WebP, до 8 МБ каждая. Первое фото — основное. Фотографии загрузятся при сохранении
+        изделия.
       </p>
       {error && (
         <p role="alert" className="error">

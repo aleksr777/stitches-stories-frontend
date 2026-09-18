@@ -897,6 +897,46 @@ dd {
   font-size: 0.8rem;
 }
 
+.admin-row-actions {
+  display: flex;
+  align-items: center;
+  align-self: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.8rem;
+}
+
+.danger-link {
+  color: #8f4354;
+}
+
+.danger-link:hover:not(:disabled),
+.danger-link:focus-visible:not(:disabled) {
+  color: #733342;
+}
+
+.admin-empty {
+  margin: 0;
+  padding: 1.25rem 0 0.25rem;
+  color: var(--muted);
+}
+
+.collection-empty {
+  max-width: 680px;
+  margin: 1.5rem auto 0;
+  padding: 2.5rem;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #f2ebe2;
+  text-align: center;
+}
+
+.collection-empty p:last-child {
+  max-width: 480px;
+  margin-inline: auto;
+  color: var(--muted);
+}
+
 .steps {
   padding-left: 1.5rem;
 }
@@ -1271,6 +1311,18 @@ dd {
 
   .empty {
     padding-block: 3rem;
+  }
+
+  .admin-row {
+    align-items: flex-start;
+  }
+
+  .admin-row-actions {
+    align-self: flex-start;
+  }
+
+  .collection-empty {
+    padding: 1.75rem 1.25rem;
   }
 }
 

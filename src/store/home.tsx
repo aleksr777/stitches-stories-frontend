@@ -87,6 +87,13 @@ const Home = () => {
         </div>
         {loading ? (
           <p role="status">Загружаем коллекцию…</p>
+        ) : products.length === 0 ? (
+          <div className="collection-empty">
+            <p>Новые изделия уже готовятся — скоро здесь появится первая история.</p>
+            <Link className="text-link" to="/catalog">
+              Заглянуть в коллекцию →
+            </Link>
+          </div>
         ) : (
           <div className="product-grid">
             {products

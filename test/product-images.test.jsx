@@ -25,8 +25,11 @@ const product = {
 };
 const response = (body, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
-const start = (path = '/admin/shop', { images = [], failSave = false } = {}) => {
-  let products = [{ ...product, images }];
+const start = (
+  path = '/admin/shop',
+  { images = [], products: initialProducts, failSave = false } = {},
+) => {
+  let products = initialProducts ?? [{ ...product, images }];
   let failed = false;
   const saves = [];
   const calls = [];
@@ -43,6 +46,10 @@ const start = (path = '/admin/shop', { images = [], failSave = false } = {}) => 
       if (endpoint === '/auth/session') return new Response(null, { status: 204 });
       if (endpoint === '/users/me')
         return response({ id: 1, name: 'Мастер', email: 'admin@example.test', role: 'admin' });
+      if (endpoint === '/shop/admin/products/' + id && options.method === 'DELETE') {
+        products = [];
+        return response({ deleted: true });
+      }
       if (
         endpoint.startsWith('/shop/admin/products') &&
         ['POST', 'PATCH'].includes(options.method)
@@ -122,14 +129,22 @@ test('administrator creates a product with previews, selects a cover and retries
   expect(
     within(dialog).getByLabelText('Показывать на главной').closest('.product-editor-options'),
   ).not.toBeNull();
-  for (const [label, value] of [
-    ['Название', 'Летний сад'],
-    ['Адрес в каталоге', 'summer-garden'],
-    ['Описание', 'Обложка с вышитым летним садом'],
-    ['Материалы', 'Хлопок'],
-    ['Размеры', '10 × 15 см'],
-  ])
-    fireEvent.change(within(dialog).getByLabelText(label), { target: { value } });
+  expect(within(dialog).queryByLabelText('Адрес в каталоге')).toBeNull();
+  expect(within(dialog).getByLabelText('Название').required).toBe(true);
+  expect(within(dialog).getByLabelText('Цена, ₽').required).toBe(true);
+  expect(within(dialog).getByLabelText('Описание').required).toBe(false);
+  expect(within(dialog).getByLabelText('Цена, ₽').value).toBe('0');
+  expect(within(dialog).getByLabelText('Добавить фотографии').getAttribute('aria-required')).toBe(
+    'true',
+  );
+  fireEvent.change(within(dialog).getByLabelText('Название'), { target: { value: 'Летний сад' } });
+  fireEvent.click(within(dialog).getByRole('button', { name: 'Сохранить изделие' }));
+  await within(dialog).findByText('Укажите цену изделия больше 0 ₽.');
+  expect(saves).toHaveLength(0);
+  fireEvent.change(within(dialog).getByLabelText('Цена, ₽'), { target: { value: '1200' } });
+  fireEvent.click(within(dialog).getByRole('button', { name: 'Сохранить изделие' }));
+  await within(dialog).findByText('Добавьте хотя бы одну фотографию изделия.');
+  expect(saves).toHaveLength(0);
   const first = file('front.png');
   const second = file('detail.png');
   choose([first, second]);
@@ -148,7 +163,14 @@ test('administrator creates a product with previews, selects a cover and retries
     expect(save.body).toBeInstanceOf(FormData);
     expect(save.body.getAll('files').map((f) => f.name)).toEqual(['detail.png', 'front.png']);
     expect(JSON.parse(save.body.get('data'))).toMatchObject({
+      slug: expect.stringMatching(/^letniy-sad-[a-z0-9]{8}$/),
       name: 'Летний сад',
+      priceRub: 1200,
+      description: 'Описание изделия уточняется.',
+      materials: 'Материалы уточняются.',
+      dimensions: 'Размеры уточняются.',
+      productionTime: 'По согласованию',
+      stock: 1,
       images: ['upload:0', 'upload:1'],
       active: false,
     });
@@ -191,6 +213,27 @@ test('invalid selections stay out of the draft and closing a draft uploads nothi
   fireEvent.click(screen.getByRole('button', { name: 'Закрыть окно' }));
   expect(saves).toHaveLength(0);
   expect(URL.revokeObjectURL).toHaveBeenCalledTimes(1);
+});
+
+test('administrator confirms removal before deleting the product and refreshes the empty list', async () => {
+  const { calls } = start();
+  fireEvent.click(await screen.findByRole('button', { name: 'Удалить изделие: Тихий сад' }));
+  const dialog = screen.getByRole('dialog', { name: 'Удалить изделие?' });
+  expect(within(dialog).getByText(/будет удалено из магазина вместе с фотографиями/)).toBeTruthy();
+  fireEvent.click(within(dialog).getByRole('button', { name: 'Удалить изделие', exact: true }));
+  await screen.findByText('Изделий пока нет. Создайте первую историю для витрины.');
+  expect(
+    calls.filter(
+      (call) => call.endpoint === '/shop/admin/products/' + id && call.options.method === 'DELETE',
+    ),
+  ).toHaveLength(1);
+});
+
+test('catalog gently explains when the collection is empty', async () => {
+  start('/catalog', { products: [] });
+  expect(await screen.findByRole('heading', { name: 'Коллекция скоро появится' })).toBeTruthy();
+  expect(screen.getByText(/Мы бережно готовим новые изделия с вышивкой/)).toBeTruthy();
+  expect(screen.queryByLabelText('Поиск изделия')).toBeNull();
 });
 
 test('the product gallery loads server URLs, changes photos and handles unavailable images', async () => {

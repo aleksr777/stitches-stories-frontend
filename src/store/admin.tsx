@@ -4,27 +4,78 @@ import { useStore } from './context';
 import { money, statusNames, type OrderRequest, type Product } from './types';
 import Modal from './modal';
 import ProductImageEditor, { type EditableProductImage } from './product-image-editor';
-const blank: Product = {
-  id: '',
-  slug: '',
-  name: '',
-  category: 'keychains',
-  priceRub: 1200,
-  description: '',
-  materials: '',
-  dimensions: '',
+const productDefaults = {
+  category: 'keychains' as const,
+  description: 'Описание изделия уточняется.',
+  materials: 'Материалы уточняются.',
+  dimensions: 'Размеры уточняются.',
   productionTime: 'По согласованию',
-  images: [],
   stock: 1,
   featured: false,
   active: false,
   isDemo: true,
+};
+const blank: Product = {
+  id: '',
+  slug: '',
+  name: '',
+  priceRub: 0,
+  images: [],
+  ...productDefaults,
+};
+const transliteration: Record<string, string> = {
+  а: 'a',
+  б: 'b',
+  в: 'v',
+  г: 'g',
+  д: 'd',
+  е: 'e',
+  ё: 'e',
+  ж: 'zh',
+  з: 'z',
+  и: 'i',
+  й: 'y',
+  к: 'k',
+  л: 'l',
+  м: 'm',
+  н: 'n',
+  о: 'o',
+  п: 'p',
+  р: 'r',
+  с: 's',
+  т: 't',
+  у: 'u',
+  ф: 'f',
+  х: 'h',
+  ц: 'ts',
+  ч: 'ch',
+  ш: 'sh',
+  щ: 'sch',
+  ъ: '',
+  ы: 'y',
+  ь: '',
+  э: 'e',
+  ю: 'yu',
+  я: 'ya',
+};
+const newProductSlug = (name: string) => {
+  const stem = [...name.toLowerCase()]
+    .map((character) => transliteration[character] ?? character)
+    .join('')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 88)
+    .replace(/-+$/g, '');
+  return (stem || 'item') + '-' + crypto.randomUUID().slice(0, 8);
 };
 const Admin = () => {
   const { retry } = useStore();
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<OrderRequest[]>([]);
   const [editing, setEditing] = useState<Product | null>(null);
+  const [removing, setRemoving] = useState<Product | null>(null);
   const [images, setImages] = useState<EditableProductImage[]>([]);
   const [error, setError] = useState('');
   const [revision, setRevision] = useState(0);
@@ -57,6 +108,20 @@ const Admin = () => {
     e.preventDefault();
     if (!editing) return;
     const data = new FormData(e.currentTarget);
+    const name = String(data.get('name') ?? '').trim();
+    const priceRub = Number(data.get('priceRub'));
+    const stock = Number(data.get('stock'));
+    setError('');
+    if (!Number.isInteger(priceRub) || priceRub < 1) {
+      setError('Укажите цену изделия больше 0 ₽.');
+      return;
+    }
+    if (!editing.id && !images.length) {
+      setError('Добавьте хотя бы одну фотографию изделия.');
+      return;
+    }
+    const text = (field: string, fallback: string) =>
+      String(data.get(field) ?? '').trim() || fallback;
     const upload = new FormData();
     let fileIndex = 0;
     const paths = images.map((image) => {
@@ -65,16 +130,16 @@ const Admin = () => {
       return 'upload:' + fileIndex++;
     });
     const body = {
-      slug: String(data.get('slug')),
-      name: String(data.get('name')),
+      slug: editing.id ? editing.slug : newProductSlug(name),
+      name,
       category: String(data.get('category')),
-      priceRub: Number(data.get('priceRub')),
-      description: String(data.get('description')),
-      materials: String(data.get('materials')),
-      dimensions: String(data.get('dimensions')),
-      productionTime: String(data.get('productionTime')),
+      priceRub,
+      description: text('description', productDefaults.description),
+      materials: text('materials', productDefaults.materials),
+      dimensions: text('dimensions', productDefaults.dimensions),
+      productionTime: text('productionTime', productDefaults.productionTime),
       images: paths,
-      stock: Number(data.get('stock')),
+      stock: Number.isInteger(stock) && stock >= 0 ? stock : productDefaults.stock,
       featured: !!data.get('featured'),
       active: !!data.get('active'),
       isDemo: !!data.get('isDemo'),
@@ -94,6 +159,21 @@ const Admin = () => {
       retry();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Не удалось сохранить.');
+    } finally {
+      setBusy(false);
+    }
+  };
+  const remove = async () => {
+    if (!removing) return;
+    setBusy(true);
+    setError('');
+    try {
+      await apiRequest('/shop/admin/products/' + removing.id, { method: 'DELETE' });
+      setRemoving(null);
+      setRevision((v) => v + 1);
+      retry();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Не удалось удалить изделие.');
     } finally {
       setBusy(false);
     }
@@ -128,20 +208,38 @@ const Admin = () => {
             Новое изделие
           </button>
         </div>
-        {products.map((p) => (
-          <article className="admin-row" key={p.id}>
-            <div>
-              <h3>{p.name}</h3>
-              <p>
-                {money(p.priceRub)} · {p.active ? 'В каталоге' : 'Скрыто'}
-                {p.isDemo ? ' · Демо' : ''}
-              </p>
-            </div>
-            <button className="text-link" disabled={busy} onClick={() => edit(p)}>
-              Изменить
-            </button>
-          </article>
-        ))}
+        {products.length ? (
+          products.map((p) => (
+            <article className="admin-row" key={p.id}>
+              <div>
+                <h3>{p.name}</h3>
+                <p>
+                  {money(p.priceRub)} · {p.active ? 'В каталоге' : 'Скрыто'}
+                  {p.isDemo ? ' · Демо' : ''}
+                </p>
+              </div>
+              <div className="admin-row-actions">
+                <button type="button" className="text-link" disabled={busy} onClick={() => edit(p)}>
+                  Изменить
+                </button>
+                <button
+                  type="button"
+                  className="text-link danger-link"
+                  aria-label={'Удалить изделие: ' + p.name}
+                  disabled={busy}
+                  onClick={() => {
+                    setError('');
+                    setRemoving(p);
+                  }}
+                >
+                  Удалить
+                </button>
+              </div>
+            </article>
+          ))
+        ) : (
+          <p className="admin-empty">Изделий пока нет. Создайте первую историю для витрины.</p>
+        )}
       </section>
       <section className="panel">
         <h2>Последние заявки</h2>
@@ -204,16 +302,6 @@ const Admin = () => {
                   />
                 </label>
                 <label>
-                  Адрес в каталоге
-                  <input
-                    name="slug"
-                    defaultValue={editing.slug}
-                    pattern="[a-z0-9]+(-[a-z0-9]+)*"
-                    maxLength={100}
-                    required
-                  />
-                </label>
-                <label>
                   Категория
                   <select name="category" defaultValue={editing.category}>
                     <option value="keychains">Брелок</option>
@@ -225,7 +313,8 @@ const Admin = () => {
                   <input
                     name="priceRub"
                     type="number"
-                    min={1}
+                    min={0}
+                    step={1}
                     max={1000000}
                     defaultValue={editing.priceRub}
                     required
@@ -238,7 +327,6 @@ const Admin = () => {
                     defaultValue={editing.description}
                     minLength={10}
                     maxLength={6000}
-                    required
                   />
                 </label>
                 {(['materials', 'dimensions', 'productionTime'] as const).map((key, i) => (
@@ -252,12 +340,16 @@ const Admin = () => {
                       defaultValue={editing[key]}
                       minLength={2}
                       maxLength={key === 'materials' ? 250 : key === 'dimensions' ? 100 : 160}
-                      required
                     />
                   </label>
                 ))}
               </div>
-              <ProductImageEditor images={images} onChange={setImages} disabled={busy} />
+              <ProductImageEditor
+                images={images}
+                onChange={setImages}
+                disabled={busy}
+                required={!editing.id}
+              />
               <label className="product-editor-stock">
                 Доступное количество
                 <input
@@ -266,7 +358,6 @@ const Admin = () => {
                   min={0}
                   max={10000}
                   defaultValue={editing.stock}
-                  required
                 />
               </label>
               <div className="product-editor-options">
@@ -293,6 +384,46 @@ const Admin = () => {
               </div>
             </fieldset>
           </form>
+        </Modal>
+      )}
+      {removing && (
+        <Modal
+          title="Удалить изделие?"
+          className="product-remove-modal"
+          onClose={() => {
+            if (!busy) setRemoving(null);
+          }}
+        >
+          <div className="product-remove-confirm">
+            <p>
+              Изделие «<strong>{removing.name}</strong>» будет удалено из магазина вместе с
+              фотографиями.
+            </p>
+            <p className="muted">Сохранённые заявки останутся в истории без изменений.</p>
+            {error && (
+              <p role="alert" className="error">
+                {error}
+              </p>
+            )}
+            <div className="product-remove-actions">
+              <button
+                type="button"
+                className="button button-secondary"
+                disabled={busy}
+                onClick={() => setRemoving(null)}
+              >
+                Отмена
+              </button>
+              <button
+                type="button"
+                className="button danger-button"
+                disabled={busy}
+                onClick={() => void remove()}
+              >
+                {busy ? 'Удаляем изделие…' : 'Удалить изделие'}
+              </button>
+            </div>
+          </div>
         </Modal>
       )}
     </section>

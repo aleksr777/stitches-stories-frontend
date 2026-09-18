@@ -7,5 +7,8 @@ export default defineConfig({
     environment: 'jsdom',
     include: ['test/**/*.test.jsx'],
     setupFiles: ['test/setup.mjs'],
+    // Тесты намеренно подменяют глобальный fetch, поэтому файлы должны идти
+    // последовательно, без гонки между разными имитациями API.
+    fileParallelism: false,
   },
 });
