@@ -1,6 +1,9 @@
-import { useEffect, useId, useRef, type PropsWithChildren } from 'react';
+import { useEffect, useId, useRef, useState, type PropsWithChildren } from 'react';
 import { createPortal } from 'react-dom';
+
 let openedDialogs = 0;
+const CLOSE_DURATION_MS = 400;
+
 const Modal = ({
   title,
   onClose,
@@ -8,35 +11,51 @@ const Modal = ({
   className = '',
 }: PropsWithChildren<{ title: string; onClose: () => void; className?: string }>) => {
   const ref = useRef<HTMLDialogElement>(null);
+  const closeTimer = useRef<number | null>(null);
+  const openFrame = useRef<number | null>(null);
   const label = useId();
+  const [state, setState] = useState<'opening' | 'open' | 'closing'>('opening');
+
+  const requestClose = () => {
+    if (state === 'closing') return;
+    setState('closing');
+    closeTimer.current = window.setTimeout(onClose, CLOSE_DURATION_MS);
+  };
+
   useEffect(() => {
     const dialog = ref.current;
     const priorFocus = document.activeElement as HTMLElement | null;
     dialog?.showModal();
+    openFrame.current = window.requestAnimationFrame(() => setState('open'));
     openedDialogs += 1;
     document.body.style.overflow = 'hidden';
+
     return () => {
+      if (openFrame.current !== null) window.cancelAnimationFrame(openFrame.current);
+      if (closeTimer.current !== null) window.clearTimeout(closeTimer.current);
       dialog?.close();
       openedDialogs -= 1;
       if (!openedDialogs) document.body.style.overflow = '';
       priorFocus?.focus();
     };
   }, []);
+
   return createPortal(
     <dialog
       ref={ref}
       className={'modal' + (className ? ' ' + className : '')}
+      data-state={state}
       aria-labelledby={label}
       onCancel={(e) => {
         e.preventDefault();
-        onClose();
+        requestClose();
       }}
       onClick={(e) => {
-        if (e.target === ref.current) onClose();
+        if (e.target === ref.current) requestClose();
       }}
     >
       <div className="modal-content">
-        <button type="button" className="close" aria-label="Закрыть окно" onClick={onClose}>
+        <button type="button" className="close" aria-label="Закрыть окно" onClick={requestClose}>
           ×
         </button>
         <p className="eyebrow">Stitches &amp; Stories</p>
@@ -47,4 +66,5 @@ const Modal = ({
     document.body,
   );
 };
+
 export default Modal;
