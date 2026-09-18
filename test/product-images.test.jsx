@@ -210,6 +210,7 @@ test('invalid selections stay out of the draft and closing a draft uploads nothi
   expect(screen.getByRole('alert').textContent).toContain('до 8 фотографий');
   choose([file()]);
   await screen.findByAltText('Предпросмотр фотографии 1');
+  await new Promise((resolve) => setTimeout(resolve, 450));
   fireEvent.click(screen.getByRole('button', { name: 'Закрыть окно' }));
   expect(saves).toHaveLength(0);
   await waitFor(() => expect(URL.revokeObjectURL).toHaveBeenCalledTimes(1));
