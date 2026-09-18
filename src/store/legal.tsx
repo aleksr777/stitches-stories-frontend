@@ -1,4 +1,4 @@
-import Modal from './modal';
+import Modal, { ModalDismissButton } from './modal';
 import { useStore } from './context';
 import type { LegalDocument } from './types';
 export const DocumentButton = ({ id, children }: { id: string; children: React.ReactNode }) => {
@@ -40,9 +40,7 @@ export const LegalDialog = ({
       ))}
     </div>
     <p className="muted">Версия: {document.version}</p>
-    <button className="button" onClick={close}>
-      Закрыть документ
-    </button>
+    <ModalDismissButton className="button">Закрыть документ</ModalDismissButton>
   </Modal>
 );
 export const DocumentsPage = () => {
