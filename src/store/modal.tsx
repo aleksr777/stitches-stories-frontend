@@ -66,6 +66,8 @@ const Modal = ({
   useEffect(() => {
     const dialog = ref.current;
     const priorFocus = document.activeElement as HTMLElement | null;
+    const lockedScrollX = window.scrollX;
+    const lockedScrollY = window.scrollY;
     dialog?.showModal();
     if (dialog) openedDialogs.push(dialog);
     openFrame.current = window.requestAnimationFrame(() => setState('open'));
@@ -90,6 +92,12 @@ const Modal = ({
       const deltaY = touchY - nextY;
       touchY = nextY;
       if (!canScrollWithin(event.target, dialog, deltaY)) event.preventDefault();
+    };
+    const preventWindowScroll = () => {
+      if (!isTopmost()) return;
+      if (window.scrollX !== lockedScrollX || window.scrollY !== lockedScrollY) {
+        window.scrollTo(lockedScrollX, lockedScrollY);
+      }
     };
     const preventBackgroundKeys = (event: KeyboardEvent) => {
       if (!dialog || !isTopmost()) return;
@@ -120,6 +128,7 @@ const Modal = ({
     document.addEventListener('touchstart', rememberTouch, { passive: true });
     document.addEventListener('touchmove', preventBackgroundTouch, { passive: false });
     document.addEventListener('keydown', preventBackgroundKeys);
+    window.addEventListener('scroll', preventWindowScroll, { passive: true });
 
     return () => {
       if (openFrame.current !== null) window.cancelAnimationFrame(openFrame.current);
@@ -128,6 +137,7 @@ const Modal = ({
       document.removeEventListener('touchstart', rememberTouch);
       document.removeEventListener('touchmove', preventBackgroundTouch);
       document.removeEventListener('keydown', preventBackgroundKeys);
+      window.removeEventListener('scroll', preventWindowScroll);
       if (dialog) {
         const index = openedDialogs.lastIndexOf(dialog);
         if (index !== -1) openedDialogs.splice(index, 1);
