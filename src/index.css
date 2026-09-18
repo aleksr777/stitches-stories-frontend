@@ -720,9 +720,33 @@ dd {
   max-width: calc(100% - 2rem);
   max-height: calc(100dvh - 2rem);
   overflow: auto;
+  opacity: 0;
+  transform: translateY(12px) scale(0.985);
+  transform-origin: center;
+  transition:
+    opacity 0.4s ease,
+    transform 0.4s ease;
+}
+
+.modal[data-state='open'] {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.modal[data-state='closing'] {
+  opacity: 0;
+  transform: translateY(8px) scale(0.99);
 }
 
 .modal::backdrop {
+  background: transparent;
+  backdrop-filter: blur(0);
+  transition:
+    background-color 0.4s ease,
+    backdrop-filter 0.4s ease;
+}
+
+.modal[data-state='open']::backdrop {
   background: #382f2d88;
   backdrop-filter: blur(3px);
 }
