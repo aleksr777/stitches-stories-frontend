@@ -13,19 +13,17 @@ import { createPortal } from 'react-dom';
 const CLOSE_DURATION_MS = 400;
 const ModalCloseContext = createContext<(() => void) | null>(null);
 const openedDialogs: HTMLDialogElement[] = [];
-let pageScrollLock:
-  | {
-      x: number;
-      y: number;
-      rootMinHeight: string;
-      rootOverflowY: string;
-      bodyPosition: string;
-      bodyTop: string;
-      bodyLeft: string;
-      bodyRight: string;
-      bodyWidth: string;
-    }
-  | null = null;
+let pageScrollLock: {
+  x: number;
+  y: number;
+  rootMinHeight: string;
+  rootOverflowY: string;
+  bodyPosition: string;
+  bodyTop: string;
+  bodyLeft: string;
+  bodyRight: string;
+  bodyWidth: string;
+} | null = null;
 
 const lockPageScroll = () => {
   if (pageScrollLock) return;
