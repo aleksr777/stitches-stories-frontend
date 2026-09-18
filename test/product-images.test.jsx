@@ -212,7 +212,7 @@ test('invalid selections stay out of the draft and closing a draft uploads nothi
   await screen.findByAltText('Предпросмотр фотографии 1');
   fireEvent.click(screen.getByRole('button', { name: 'Закрыть окно' }));
   expect(saves).toHaveLength(0);
-  expect(URL.revokeObjectURL).toHaveBeenCalledTimes(1);
+  await waitFor(() => expect(URL.revokeObjectURL).toHaveBeenCalledTimes(1));
 });
 
 test('administrator confirms removal before deleting the product and refreshes the empty list', async () => {
