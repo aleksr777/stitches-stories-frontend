@@ -12,6 +12,24 @@ import { createPortal } from 'react-dom';
 
 const CLOSE_DURATION_MS = 400;
 const ModalCloseContext = createContext<(() => void) | null>(null);
+const openedDialogs: HTMLDialogElement[] = [];
+
+const canScrollWithin = (target: EventTarget | null, dialog: HTMLDialogElement, deltaY: number) => {
+  if (!(target instanceof Node) || !dialog.contains(target)) return false;
+  let element = target instanceof Element ? target : target.parentElement;
+  while (element) {
+    const scrollable = element.scrollHeight > element.clientHeight;
+    if (scrollable) {
+      if (deltaY < 0 && element.scrollTop > 0) return true;
+      if (deltaY > 0 && element.scrollTop + element.clientHeight < element.scrollHeight - 1) {
+        return true;
+      }
+    }
+    if (element === dialog) break;
+    element = element.parentElement;
+  }
+  return false;
+};
 
 export const ModalDismissButton = ({
   onClick,
@@ -52,11 +70,71 @@ const Modal = ({
     const dialog = ref.current;
     const priorFocus = document.activeElement as HTMLElement | null;
     dialog?.showModal();
+    if (dialog) openedDialogs.push(dialog);
     openFrame.current = window.requestAnimationFrame(() => setState('open'));
+
+    let touchY: number | null = null;
+    const isTopmost = () => openedDialogs.at(-1) === dialog;
+    const preventBackgroundWheel = (event: WheelEvent) => {
+      if (!dialog || !isTopmost()) return;
+      if (!canScrollWithin(event.target, dialog, event.deltaY)) event.preventDefault();
+    };
+    const rememberTouch = (event: TouchEvent) => {
+      if (!isTopmost()) return;
+      touchY = event.touches[0]?.clientY ?? null;
+    };
+    const preventBackgroundTouch = (event: TouchEvent) => {
+      if (!dialog || !isTopmost()) return;
+      const nextY = event.touches[0]?.clientY;
+      if (nextY === undefined || touchY === null) {
+        event.preventDefault();
+        return;
+      }
+      const deltaY = touchY - nextY;
+      touchY = nextY;
+      if (!canScrollWithin(event.target, dialog, deltaY)) event.preventDefault();
+    };
+    const preventBackgroundKeys = (event: KeyboardEvent) => {
+      if (!dialog || !isTopmost()) return;
+      const target = event.target;
+      if (
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement ||
+        target instanceof HTMLSelectElement ||
+        (target instanceof HTMLElement && target.isContentEditable)
+      ) {
+        return;
+      }
+      const deltas: Record<string, number> = {
+        ArrowDown: 40,
+        ArrowUp: -40,
+        PageDown: dialog.clientHeight,
+        PageUp: -dialog.clientHeight,
+        Home: Number.NEGATIVE_INFINITY,
+        End: Number.POSITIVE_INFINITY,
+        ' ': event.shiftKey ? -dialog.clientHeight : dialog.clientHeight,
+      };
+      const deltaY = deltas[event.key];
+      if (deltaY === undefined) return;
+      if (!canScrollWithin(target, dialog, deltaY)) event.preventDefault();
+    };
+
+    document.addEventListener('wheel', preventBackgroundWheel, { passive: false });
+    document.addEventListener('touchstart', rememberTouch, { passive: true });
+    document.addEventListener('touchmove', preventBackgroundTouch, { passive: false });
+    document.addEventListener('keydown', preventBackgroundKeys);
 
     return () => {
       if (openFrame.current !== null) window.cancelAnimationFrame(openFrame.current);
       if (closeTimer.current !== null) window.clearTimeout(closeTimer.current);
+      document.removeEventListener('wheel', preventBackgroundWheel);
+      document.removeEventListener('touchstart', rememberTouch);
+      document.removeEventListener('touchmove', preventBackgroundTouch);
+      document.removeEventListener('keydown', preventBackgroundKeys);
+      if (dialog) {
+        const index = openedDialogs.lastIndexOf(dialog);
+        if (index !== -1) openedDialogs.splice(index, 1);
+      }
       dialog?.close();
       priorFocus?.focus();
     };
