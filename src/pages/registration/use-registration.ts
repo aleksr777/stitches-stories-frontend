@@ -59,7 +59,7 @@ export const useRegistration = () => {
       setError(null);
       setIsSubmitting(true);
       await confirmRegistration(code, pendingEmail);
-      navigate('/users/me', { replace: true });
+      navigate('/catalog', { replace: true });
     } catch (err: unknown) {
       verification.applyAttemptError(err);
       verification.applyRetryError(err);
