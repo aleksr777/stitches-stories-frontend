@@ -56,8 +56,38 @@
   width: 100%;
   max-width: 100%;
   min-width: 0;
-  padding: 0.7rem;
+  padding: 0.55rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fffcf8;
+  color: var(--muted);
   font-size: 0.8rem;
+}
+
+.product-image-editor input[type='file']::file-selector-button {
+  min-height: 40px;
+  margin-right: 0.85rem;
+  padding: 0.65rem 1rem;
+  border: 1px solid var(--accent);
+  border-radius: 5px;
+  background: transparent;
+  color: var(--accent);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.product-image-editor input[type='file']::file-selector-button:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+.product-image-editor input[type='file']:disabled::file-selector-button {
+  cursor: not-allowed;
+  opacity: 0.55;
 }
 
 .product-image-editor > .muted {
