@@ -33,6 +33,7 @@
   color: #382f2d;
   background: #faf7f2;
   font-synthesis: none;
+  scrollbar-gutter: stable;
 
   --accent: #8d4e60;
   --line: #ddcfc5;
