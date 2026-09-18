@@ -108,7 +108,8 @@ const Profile = () => {
             <button
               className="text-link"
               onClick={() => {
-                void logout().finally(() => navigate('/'));
+                navigate('/', { replace: true });
+                void logout().catch(() => undefined);
               }}
             >
               Выйти из аккаунта
