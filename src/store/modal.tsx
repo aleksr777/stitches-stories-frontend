@@ -10,7 +10,6 @@ import {
 } from 'react';
 import { createPortal } from 'react-dom';
 
-let openedDialogs = 0;
 const CLOSE_DURATION_MS = 400;
 const ModalCloseContext = createContext<(() => void) | null>(null);
 
@@ -54,15 +53,11 @@ const Modal = ({
     const priorFocus = document.activeElement as HTMLElement | null;
     dialog?.showModal();
     openFrame.current = window.requestAnimationFrame(() => setState('open'));
-    openedDialogs += 1;
-    document.body.style.overflow = 'hidden';
 
     return () => {
       if (openFrame.current !== null) window.cancelAnimationFrame(openFrame.current);
       if (closeTimer.current !== null) window.clearTimeout(closeTimer.current);
       dialog?.close();
-      openedDialogs -= 1;
-      if (!openedDialogs) document.body.style.overflow = '';
       priorFocus?.focus();
     };
   }, []);
