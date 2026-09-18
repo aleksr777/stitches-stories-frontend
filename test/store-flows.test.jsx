@@ -131,7 +131,7 @@ test('product, cart and checkout keep guest data and retry the same request afte
   expect(JSON.parse(localStorage.getItem('ss-cart-v1'))).toEqual([]);
 });
 
-test('registration sends two distinct document references and opens the authenticated profile', async () => {
+test('registration sends two distinct document references and opens the catalog', async () => {
   const { calls, router } = start('/auth/registration');
   const dialog = await screen.findByRole('dialog');
   await waitFor(() =>
@@ -154,8 +154,7 @@ test('registration sends two distinct document references and opens the authenti
   fireEvent.click(within(dialog).getByRole('button', { name: 'Получить код регистрации' }));
   fireEvent.change(await screen.findByLabelText('Код из письма'), { target: { value: '123456' } });
   fireEvent.click(screen.getByRole('button', { name: 'Подтвердить код' }));
-  await screen.findByRole('heading', { name: 'Здравствуйте, Надежда' });
-  expect(router.state.location.pathname).toBe('/users/me');
+  await waitFor(() => expect(router.state.location.pathname).toBe('/catalog'));
   expect(screen.getByRole('link', { name: 'Мой профиль' }).className).toBe('avatar');
   const request = calls.find((c) => c.endpoint === '/auth/registration/request').body;
   expect(request.name).toBe('Надежда');
