@@ -2,7 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { apiRequest } from '../shared/api/api-client';
 import { useStore } from './context';
 import { money, statusNames, type OrderRequest, type Product } from './types';
-import Modal from './modal';
+import Modal, { ModalDismissButton } from './modal';
 import ProductImageEditor, { type EditableProductImage } from './product-image-editor';
 const productDefaults = {
   category: 'keychains' as const,
@@ -406,14 +406,9 @@ const Admin = () => {
               </p>
             )}
             <div className="product-remove-actions">
-              <button
-                type="button"
-                className="button button-secondary"
-                disabled={busy}
-                onClick={() => setRemoving(null)}
-              >
+              <ModalDismissButton className="button button-secondary" disabled={busy}>
                 Отмена
-              </button>
+              </ModalDismissButton>
               <button
                 type="button"
                 className="button danger-button"
