@@ -239,12 +239,10 @@ test('catalog gently explains when the collection is empty', async () => {
 test('administrator does not use favorites or customer consent controls', async () => {
   const { calls } = start('/catalog');
   const favorite = await screen.findByRole('button', {
-    name: 'Избранное недоступно владельцу: Тихий сад',
+    name: 'В избранное: Тихий сад',
   });
   expect(favorite.disabled).toBe(true);
-  expect(
-    screen.getByRole('button', { name: 'Избранное недоступно владельцу магазина' }).disabled,
-  ).toBe(true);
+  expect(screen.getByRole('button', { name: 'Избранное' }).disabled).toBe(true);
   fireEvent.click(screen.getByRole('link', { name: 'Мой профиль' }));
   await screen.findByRole('heading', { name: 'Здравствуйте, Мастер' });
   expect(screen.getByRole('heading', { name: 'Управление магазином' })).toBeTruthy();
@@ -258,7 +256,7 @@ test('administrator does not use favorites or customer consent controls', async 
 test('administrator cannot add an item to the cart or send a purchase request', async () => {
   localStorage.setItem('ss-cart-v1', JSON.stringify([{ productId: id, quantity: 1 }]));
   const { calls } = start('/cart');
-  const submit = await screen.findByRole('button', { name: 'Заявка недоступна владельцу' });
+  const submit = await screen.findByRole('button', { name: 'Отправить заявку мастеру' });
   expect(submit.disabled).toBe(true);
   expect(screen.queryByRole('checkbox', { name: /Принимаю условия/ })).toBeNull();
   expect(screen.getByText(/Для владельца не требуются согласия покупателя/)).toBeTruthy();
@@ -266,9 +264,9 @@ test('administrator cannot add an item to the cart or send a purchase request', 
   expect(calls.some((call) => call.endpoint === '/shop/requests')).toBe(false);
 });
 
-test('administrator sees the product purchase action as unavailable', async () => {
+test('administrator sees the product purchase action as inactive', async () => {
   start('/products/quiet-garden');
-  const add = await screen.findByRole('button', { name: 'Недоступно владельцу' });
+  const add = await screen.findByRole('button', { name: 'Добавить в корзину' });
   expect(add.disabled).toBe(true);
   expect(
     screen.getByText(/покупательские заявки и избранное для этого профиля недоступны/),

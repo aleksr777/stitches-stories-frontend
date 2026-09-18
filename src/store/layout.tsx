@@ -60,13 +60,7 @@ const Layout = () => {
             <Icon name="search" />
           </Link>
           {favoriteUnavailable ? (
-            <button
-              type="button"
-              className="icon-button"
-              disabled
-              aria-label="Избранное недоступно владельцу магазина"
-              title="Владелец магазина не добавляет изделия в избранное."
-            >
+            <button type="button" className="icon-button" disabled aria-label="Избранное">
               <Icon name="heart" />
             </button>
           ) : (

@@ -85,15 +85,10 @@ export const ProductCard = ({ product }: { product: Product }) => {
         </Link>
         <button
           className={'favorite ' + (favorites.includes(product.id) ? 'selected' : '')}
-          aria-label={
-            isOwner
-              ? 'Избранное недоступно владельцу: ' + product.name
-              : 'В избранное: ' + product.name
-          }
+          aria-label={'В избранное: ' + product.name}
           aria-pressed={favorites.includes(product.id)}
           onClick={() => void favorite()}
           disabled={busy || isOwner || roleIsLoading}
-          title={isOwner ? 'Владелец магазина не добавляет изделия в избранное.' : undefined}
         >
           <Icon name="heart" />
         </button>
@@ -252,20 +247,13 @@ export const ProductPage = () => {
           <button
             className="button"
             disabled={!product.stock || isOwner || roleIsLoading}
-            title={isOwner ? 'Владелец магазина не оформляет заявки на покупку.' : undefined}
             onClick={() => {
               if (isOwner || roleIsLoading) return;
               add(product.id);
               setAdded(true);
             }}
           >
-            {isOwner
-              ? 'Недоступно владельцу'
-              : roleIsLoading
-                ? 'Проверяем доступ…'
-                : product.stock
-                  ? 'Добавить в корзину'
-                  : 'Сейчас недоступно'}
+            {product.stock ? 'Добавить в корзину' : 'Сейчас недоступно'}
           </button>
           {added && (
             <p role="status">

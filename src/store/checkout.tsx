@@ -158,12 +158,8 @@ const Checkout = () => {
             <Link className="button secondary full" to="/admin/shop">
               Перейти к управлению магазином
             </Link>
-            <button
-              className="button full"
-              disabled
-              title="Владелец магазина не оформляет заявки на покупку."
-            >
-              Заявка недоступна владельцу
+            <button className="button full" disabled>
+              Отправить заявку мастеру
             </button>
           </aside>
         ) : (
@@ -224,11 +220,7 @@ const Checkout = () => {
               className="button full"
               disabled={busy || isInitializing || loading || !offer || unavailable || roleIsLoading}
             >
-              {busy
-                ? 'Отправляем…'
-                : roleIsLoading
-                  ? 'Проверяем доступ…'
-                  : 'Отправить заявку мастеру'}
+              {busy ? 'Отправляем…' : 'Отправить заявку мастеру'}
             </button>
           </form>
         )}
