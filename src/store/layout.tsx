@@ -8,7 +8,7 @@ import Modal from './modal';
 import { DocumentButton } from './legal';
 import { NewsletterDialog } from './newsletter';
 const Layout = () => {
-  const { isAuth, isInitializing } = useAuth();
+  const { isAuth, isInitializing, role } = useAuth();
   const { cart, error, retry } = useStore();
   const location = useLocation();
   const navigate = useNavigate();
@@ -20,6 +20,7 @@ const Layout = () => {
     authParam && ['login', 'registration', 'password-reset'].includes(authParam)
       ? (authParam as AuthMode)
       : null;
+  const favoriteUnavailable = isAuth && role !== 'user';
   const closeAuth = () => {
     if (fromPath) navigate('/', { replace: true });
     else {
@@ -58,13 +59,25 @@ const Layout = () => {
           <Link className="icon-button search-link" to="/catalog" aria-label="Поиск">
             <Icon name="search" />
           </Link>
-          <Link
-            className="icon-button"
-            to={isAuth ? '/favorites' : '?auth=login'}
-            aria-label="Избранное"
-          >
-            <Icon name="heart" />
-          </Link>
+          {favoriteUnavailable ? (
+            <button
+              type="button"
+              className="icon-button"
+              disabled
+              aria-label="Избранное недоступно владельцу магазина"
+              title="Владелец магазина не добавляет изделия в избранное."
+            >
+              <Icon name="heart" />
+            </button>
+          ) : (
+            <Link
+              className="icon-button"
+              to={isAuth ? '/favorites' : '?auth=login'}
+              aria-label="Избранное"
+            >
+              <Icon name="heart" />
+            </Link>
+          )}
           <Link
             className="icon-button bag"
             to="/cart"
@@ -130,9 +143,11 @@ const Layout = () => {
             <Link to="/delivery">Доставка и оплата</Link>
             <DocumentButton id="returns">Возвраты и обращения</DocumentButton>
             <Link to="/documents">Документы магазина</Link>
-            <button className="text-link" onClick={() => setDialog('newsletter')}>
-              Письма из мастерской
-            </button>
+            {role !== 'admin' && (
+              <button className="text-link" onClick={() => setDialog('newsletter')}>
+                Письма из мастерской
+              </button>
+            )}
           </div>
         </div>
         <div className="container footer-bottom">
@@ -153,7 +168,11 @@ const Layout = () => {
             Сайт использует cookie сеанса для входа и локальное хранение состава корзины. Аналитика
             и рекламные трекеры не подключены.
           </p>
-          <p>Согласия на кабинет и рассылку можно отозвать в профиле.</p>
+          <p>
+            {role === 'admin'
+              ? 'Владелец магазина не подтверждает согласия покупателя.'
+              : 'Согласия на кабинет и рассылку можно отозвать в профиле.'}
+          </p>
           <DocumentButton id="cookies-policy">Подробнее о cookie</DocumentButton>
           <p>
             <button className="button" onClick={() => setDialog('')}>

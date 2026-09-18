@@ -27,23 +27,32 @@ const Profile = () => {
   const [revision, setRevision] = useState(0);
   useEffect(() => {
     let active = true;
-    Promise.all([
-      getCurrentUserRequest(),
-      apiRequest<OrderRequest[]>('/shop/me/requests'),
-      apiRequest<{ marketing: boolean }>('/shop/me/consents'),
-      apiRequest<ConsentEvent[]>('/legal/me/events'),
-    ])
-      .then(([u, o, c, h]) => {
+    const loadProfile = async () => {
+      const u = await getCurrentUserRequest();
+      if (u.role === 'admin') {
         if (active) {
           setUser(u);
-          setOrders(o);
-          setMarketing(c.marketing);
-          setEvents(h);
+          setOrders([]);
+          setMarketing(false);
+          setEvents([]);
         }
-      })
-      .catch((err) => {
-        if (active) setError(err instanceof Error ? err.message : 'Не удалось загрузить профиль.');
-      });
+        return;
+      }
+      const [o, c, h] = await Promise.all([
+        apiRequest<OrderRequest[]>('/shop/me/requests'),
+        apiRequest<{ marketing: boolean }>('/shop/me/consents'),
+        apiRequest<ConsentEvent[]>('/legal/me/events'),
+      ]);
+      if (active) {
+        setUser(u);
+        setOrders(o);
+        setMarketing(c.marketing);
+        setEvents(h);
+      }
+    };
+    void loadProfile().catch((err) => {
+      if (active) setError(err instanceof Error ? err.message : 'Не удалось загрузить профиль.');
+    });
     return () => {
       active = false;
     };
@@ -85,7 +94,7 @@ const Profile = () => {
               {(user.name ?? user.nickname ?? 'Я').slice(0, 1).toUpperCase()}
             </span>
             <p>{user.email}</p>
-            <Link to="/favorites">Избранное</Link>
+            {user.role !== 'admin' && <Link to="/favorites">Избранное</Link>}
             <Link to="/users/me/settings/profile">Мои данные</Link>
             <Link to="/users/me/settings/password">Сменить пароль</Link>
             <Link to="/users/me/settings/email">Сменить почту</Link>
@@ -106,75 +115,89 @@ const Profile = () => {
             </button>
           </aside>
           <div>
-            <section className="panel">
-              <h2>Мои заявки</h2>
-              {orders.length ? (
-                orders.map((o) => (
-                  <article className="request" key={o.id}>
-                    <div>
-                      <strong>№ {o.id.slice(0, 8).toUpperCase()}</strong>
-                      <span className="tag">{statusNames[o.status] ?? o.status}</span>
-                    </div>
-                    <p>{o.items.map((i) => i.name + ' × ' + i.quantity).join(', ')}</p>
-                    <p>
-                      {money(o.subtotalRub)} · {new Date(o.createdAt).toLocaleDateString('ru-RU')}
-                    </p>
-                  </article>
-                ))
-              ) : (
-                <p>Здесь появятся заявки, отправленные из вашего аккаунта.</p>
-              )}
-            </section>
-            <section className="panel">
-              <h2>Мои согласия</h2>
-              <p>
-                Рекламная рассылка: <strong>{marketing ? 'подключена' : 'выключена'}</strong>
-              </p>
-              {marketing ? (
-                <button
-                  className="text-link"
-                  disabled={busy}
-                  onClick={() => void withdraw('marketing')}
-                >
-                  Отозвать согласия на рассылку
-                </button>
-              ) : (
-                <button className="text-link" onClick={() => setDialog('newsletter')}>
-                  Подписаться на письма
-                </button>
-              )}
-              <p>
-                Аналитика выключена. На сайте используются только функции, необходимые для его
-                работы.
-              </p>
-              <DocumentButton id="privacy">Политика обработки данных</DocumentButton>
-              {user.role !== 'admin' && (
+            {user.role === 'admin' ? (
+              <section className="panel">
+                <h2>Управление магазином</h2>
                 <p>
-                  <button className="text-link" onClick={() => setDialog('account')}>
-                    Отозвать согласие на личный кабинет
-                  </button>
+                  Вы владелец Stitches &amp; Stories. Для этого профиля не нужны согласия
+                  покупателя, избранное и заявки на покупку.
                 </p>
-              )}
-              <details>
-                <summary>История подтверждений</summary>
-                {events.length ? (
-                  events.map((e) => (
-                    <p key={e.id}>
-                      {e.documentId} · {e.action === 'withdraw' ? 'отозвано' : 'подтверждено'}
-                      <br />
-                      <small>
-                        {new Date(e.createdAt).toLocaleString('ru-RU')} · {e.version}
-                      </small>
-                    </p>
-                  ))
-                ) : (
+                <Link className="button secondary" to="/admin/shop">
+                  Перейти к изделиям
+                </Link>
+              </section>
+            ) : (
+              <>
+                <section className="panel">
+                  <h2>Мои заявки</h2>
+                  {orders.length ? (
+                    orders.map((o) => (
+                      <article className="request" key={o.id}>
+                        <div>
+                          <strong>№ {o.id.slice(0, 8).toUpperCase()}</strong>
+                          <span className="tag">{statusNames[o.status] ?? o.status}</span>
+                        </div>
+                        <p>{o.items.map((i) => i.name + ' × ' + i.quantity).join(', ')}</p>
+                        <p>
+                          {money(o.subtotalRub)} ·{' '}
+                          {new Date(o.createdAt).toLocaleDateString('ru-RU')}
+                        </p>
+                      </article>
+                    ))
+                  ) : (
+                    <p>Здесь появятся заявки, отправленные из вашего аккаунта.</p>
+                  )}
+                </section>
+                <section className="panel">
+                  <h2>Мои согласия</h2>
                   <p>
-                    Подтверждения не найдены. Учётные записи из шаблона могут не содержать историю
-                    согласий.
+                    Рекламная рассылка: <strong>{marketing ? 'подключена' : 'выключена'}</strong>
                   </p>
-                )}
-              </details>
-            </section>
+                  {marketing ? (
+                    <button
+                      className="text-link"
+                      disabled={busy}
+                      onClick={() => void withdraw('marketing')}
+                    >
+                      Отозвать согласия на рассылку
+                    </button>
+                  ) : (
+                    <button className="text-link" onClick={() => setDialog('newsletter')}>
+                      Подписаться на письма
+                    </button>
+                  )}
+                  <p>
+                    Аналитика выключена. На сайте используются только функции, необходимые для его
+                    работы.
+                  </p>
+                  <DocumentButton id="privacy">Политика обработки данных</DocumentButton>
+                  <p>
+                    <button className="text-link" onClick={() => setDialog('account')}>
+                      Отозвать согласие на личный кабинет
+                    </button>
+                  </p>
+                  <details>
+                    <summary>История подтверждений</summary>
+                    {events.length ? (
+                      events.map((e) => (
+                        <p key={e.id}>
+                          {e.documentId} · {e.action === 'withdraw' ? 'отозвано' : 'подтверждено'}
+                          <br />
+                          <small>
+                            {new Date(e.createdAt).toLocaleString('ru-RU')} · {e.version}
+                          </small>
+                        </p>
+                      ))
+                    ) : (
+                      <p>
+                        Подтверждения не найдены. Учётные записи из шаблона могут не содержать
+                        историю согласий.
+                      </p>
+                    )}
+                  </details>
+                </section>
+              </>
+            )}
           </div>
         </div>
       )}

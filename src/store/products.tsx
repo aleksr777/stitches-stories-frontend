@@ -56,11 +56,14 @@ const ProductGallery = ({ product }: { product: Product }) => {
 };
 export const ProductCard = ({ product }: { product: Product }) => {
   const { favorites, toggleFavorite } = useStore();
-  const { isAuth } = useAuth();
+  const { isAuth, role } = useAuth();
   const navigate = useNavigate();
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const isOwner = role === 'admin';
+  const roleIsLoading = isAuth && role === null;
   const favorite = async () => {
+    if (isOwner || roleIsLoading) return;
     if (!isAuth) {
       navigate('?auth=login');
       return;
@@ -82,10 +85,15 @@ export const ProductCard = ({ product }: { product: Product }) => {
         </Link>
         <button
           className={'favorite ' + (favorites.includes(product.id) ? 'selected' : '')}
-          aria-label={'В избранное: ' + product.name}
+          aria-label={
+            isOwner
+              ? 'Избранное недоступно владельцу: ' + product.name
+              : 'В избранное: ' + product.name
+          }
           aria-pressed={favorites.includes(product.id)}
           onClick={() => void favorite()}
-          disabled={busy}
+          disabled={busy || isOwner || roleIsLoading}
+          title={isOwner ? 'Владелец магазина не добавляет изделия в избранное.' : undefined}
         >
           <Icon name="heart" />
         </button>
@@ -197,7 +205,10 @@ export const Catalog = ({ favoritesOnly = false }: { favoritesOnly?: boolean }) 
 export const ProductPage = () => {
   const { slug } = useParams();
   const { products, add, loading } = useStore();
+  const { isAuth, role } = useAuth();
   const [added, setAdded] = useState(false);
+  const isOwner = role === 'admin';
+  const roleIsLoading = isAuth && role === null;
   const product = products.find((p) => p.slug === slug);
   if (loading)
     return (
@@ -240,13 +251,21 @@ export const ProductPage = () => {
           </dl>
           <button
             className="button"
-            disabled={!product.stock}
+            disabled={!product.stock || isOwner || roleIsLoading}
+            title={isOwner ? 'Владелец магазина не оформляет заявки на покупку.' : undefined}
             onClick={() => {
+              if (isOwner || roleIsLoading) return;
               add(product.id);
               setAdded(true);
             }}
           >
-            {product.stock ? 'Добавить в корзину' : 'Сейчас недоступно'}
+            {isOwner
+              ? 'Недоступно владельцу'
+              : roleIsLoading
+                ? 'Проверяем доступ…'
+                : product.stock
+                  ? 'Добавить в корзину'
+                  : 'Сейчас недоступно'}
           </button>
           {added && (
             <p role="status">
@@ -256,9 +275,15 @@ export const ProductPage = () => {
               </Link>
             </p>
           )}
-          <p className="muted">
-            Сначала отправьте заявку. Мастер подтвердит детали, срок и доставку.
-          </p>
+          {isOwner ? (
+            <p className="notice">
+              Вы владелец магазина: покупательские заявки и избранное для этого профиля недоступны.
+            </p>
+          ) : (
+            <p className="muted">
+              Сначала отправьте заявку. Мастер подтвердит детали, срок и доставку.
+            </p>
+          )}
         </div>
       </div>
     </section>

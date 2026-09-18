@@ -1,5 +1,6 @@
 import { createContext } from 'react';
 import type { BlockedAccountInfo, VerificationRequestResult } from '../api/auth-api';
+import type { UserRole } from '../../users/api/users-api';
 
 export type LoginOutcome =
   | { status: 'authenticated' }
@@ -8,6 +9,7 @@ export type LoginOutcome =
 export type AuthContextValue = {
   isAuth: boolean;
   isInitializing: boolean;
+  role: UserRole | null;
   login: (email: string, password: string) => Promise<LoginOutcome>;
   requestRegistration: (
     email: string,

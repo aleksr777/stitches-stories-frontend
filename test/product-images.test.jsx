@@ -236,6 +236,45 @@ test('catalog gently explains when the collection is empty', async () => {
   expect(screen.queryByLabelText('Поиск изделия')).toBeNull();
 });
 
+test('administrator does not use favorites or customer consent controls', async () => {
+  const { calls } = start('/catalog');
+  const favorite = await screen.findByRole('button', {
+    name: 'Избранное недоступно владельцу: Тихий сад',
+  });
+  expect(favorite.disabled).toBe(true);
+  expect(
+    screen.getByRole('button', { name: 'Избранное недоступно владельцу магазина' }).disabled,
+  ).toBe(true);
+  fireEvent.click(screen.getByRole('link', { name: 'Мой профиль' }));
+  await screen.findByRole('heading', { name: 'Здравствуйте, Мастер' });
+  expect(screen.getByRole('heading', { name: 'Управление магазином' })).toBeTruthy();
+  expect(screen.queryByRole('heading', { name: 'Мои согласия' })).toBeNull();
+  expect(screen.queryByRole('link', { name: 'Избранное' })).toBeNull();
+  expect(calls.some((call) => call.endpoint === '/shop/me/favorites')).toBe(false);
+  expect(calls.some((call) => call.endpoint === '/shop/me/consents')).toBe(false);
+  expect(calls.some((call) => call.endpoint === '/legal/me/events')).toBe(false);
+});
+
+test('administrator cannot add an item to the cart or send a purchase request', async () => {
+  localStorage.setItem('ss-cart-v1', JSON.stringify([{ productId: id, quantity: 1 }]));
+  const { calls } = start('/cart');
+  const submit = await screen.findByRole('button', { name: 'Заявка недоступна владельцу' });
+  expect(submit.disabled).toBe(true);
+  expect(screen.queryByRole('checkbox', { name: /Принимаю условия/ })).toBeNull();
+  expect(screen.getByText(/Для владельца не требуются согласия покупателя/)).toBeTruthy();
+  fireEvent.click(submit);
+  expect(calls.some((call) => call.endpoint === '/shop/requests')).toBe(false);
+});
+
+test('administrator sees the product purchase action as unavailable', async () => {
+  start('/products/quiet-garden');
+  const add = await screen.findByRole('button', { name: 'Недоступно владельцу' });
+  expect(add.disabled).toBe(true);
+  expect(
+    screen.getByText(/покупательские заявки и избранное для этого профиля недоступны/),
+  ).toBeTruthy();
+});
+
 test('the product gallery loads server URLs, changes photos and handles unavailable images', async () => {
   start('/products/quiet-garden', { images: [photo, secondPhoto] });
   const main = await screen.findByRole('img', { name: product.name });

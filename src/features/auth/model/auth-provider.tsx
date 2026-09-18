@@ -11,24 +11,32 @@ import {
   registrationRequest,
   registrationResendRequest,
 } from '../api/auth-api';
+import { getCurrentUserRequest, type UserRole } from '../../users/api/users-api';
 import { AuthContext, type AuthContextValue, type LoginOutcome } from './auth-context';
 
 const AuthProvider = ({ children }: PropsWithChildren) => {
   const [isAuth, setIsAuth] = useState(false);
   const [isInitializing, setIsInitializing] = useState(true);
+  const [role, setRole] = useState<UserRole | null>(null);
 
   useEffect(() => {
-    return subscribeAuthTokensCleared(() => setIsAuth(false));
+    return subscribeAuthTokensCleared(() => {
+      setIsAuth(false);
+      setRole(null);
+    });
   }, []);
 
   useEffect(() => {
     const initializeAuth = async () => {
       try {
         await refreshAuthTokens();
+        const user = await getCurrentUserRequest();
+        setRole(user.role);
         setIsAuth(true);
       } catch {
         clearAuthTokens(false);
         setIsAuth(false);
+        setRole(null);
       } finally {
         setIsInitializing(false);
       }
@@ -42,9 +50,12 @@ const AuthProvider = ({ children }: PropsWithChildren) => {
     if (isBlockedAccountInfo(result)) {
       clearAuthTokens();
       setIsAuth(false);
+      setRole(null);
       return { status: 'blocked', info: result };
     }
 
+    const user = await getCurrentUserRequest();
+    setRole(user.role);
     setIsAuth(true);
     return { status: 'authenticated' };
   }, []);
@@ -66,6 +77,7 @@ const AuthProvider = ({ children }: PropsWithChildren) => {
 
   const confirmRegistration = useCallback(async (code: string, email: string) => {
     await registrationConfirmRequest({ code, email });
+    setRole('user');
     setIsAuth(true);
   }, []);
 
@@ -76,6 +88,8 @@ const AuthProvider = ({ children }: PropsWithChildren) => {
   const confirmPasswordReset = useCallback(
     async (code: string, newPassword: string, email: string) => {
       await passwordResetConfirmRequest({ code, email, new_password: newPassword });
+      const user = await getCurrentUserRequest();
+      setRole(user.role);
       setIsAuth(true);
     },
     [],
@@ -84,16 +98,19 @@ const AuthProvider = ({ children }: PropsWithChildren) => {
   const clearSession = useCallback(() => {
     clearAuthTokens();
     setIsAuth(false);
+    setRole(null);
   }, []);
 
   const logout = useCallback(async () => {
     await logoutRequest();
     setIsAuth(false);
+    setRole(null);
   }, []);
 
   const value: AuthContextValue = {
     isAuth,
     isInitializing,
+    role,
     login,
     requestRegistration,
     resendRegistration,

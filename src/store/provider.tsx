@@ -24,7 +24,7 @@ const readCart = (): CartItem[] => {
   }
 };
 const StoreProvider = ({ children }: PropsWithChildren) => {
-  const { isAuth } = useAuth();
+  const { isAuth, role } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [documents, setDocuments] = useState<LegalDocument[]>([]);
   const [cart, setCart] = useState(readCart);
@@ -68,7 +68,7 @@ const StoreProvider = ({ children }: PropsWithChildren) => {
   useEffect(() => {
     let active = true;
     setFavorites([]);
-    if (isAuth)
+    if (isAuth && role === 'user')
       void apiRequest<string[]>('/shop/me/favorites')
         .then((v) => {
           if (active) setFavorites(v);
@@ -77,7 +77,7 @@ const StoreProvider = ({ children }: PropsWithChildren) => {
     return () => {
       active = false;
     };
-  }, [isAuth]);
+  }, [isAuth, role]);
   const setQuantity = useCallback(
     (id: string, quantity: number) =>
       setCart((items) => {
@@ -94,6 +94,7 @@ const StoreProvider = ({ children }: PropsWithChildren) => {
   const add = useCallback(
     (id: string) =>
       setCart((items) => {
+        if (role === 'admin' || (isAuth && role === null)) return items;
         const p = products.find((v) => v.id === id);
         if (!p || p.stock < 1) return items;
         const existing = items.find((i) => i.productId === id);
@@ -103,10 +104,12 @@ const StoreProvider = ({ children }: PropsWithChildren) => {
           );
         return [...items, { productId: id, quantity: 1 }];
       }),
-    [products],
+    [isAuth, products, role],
   );
   const toggleFavorite = async (id: string) => {
     if (!isAuth) throw new Error('Войдите, чтобы сохранить избранное.');
+    if (role === 'admin') throw new Error('Владелец магазина не может изменять избранное.');
+    if (role === null) throw new Error('Проверяем возможности профиля. Попробуйте ещё раз.');
     const included = favorites.includes(id);
     await apiRequest('/shop/me/favorites/' + id, { method: included ? 'DELETE' : 'POST' });
     setFavorites((v) => (included ? v.filter((i) => i !== id) : [...v, id]));
