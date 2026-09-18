@@ -113,9 +113,13 @@ const Modal = ({
   const [state, setState] = useState<'opening' | 'open' | 'closing'>('opening');
 
   const requestClose = () => {
-    if (!canClose.current || state === 'closing') return;
+    if (state === 'closing') return;
     setState('closing');
     closeTimer.current = window.setTimeout(onClose, CLOSE_DURATION_MS);
+  };
+  const requestGuardedClose = () => {
+    if (!canClose.current) return;
+    requestClose();
   };
 
   useEffect(() => {
@@ -211,12 +215,17 @@ const Modal = ({
         requestClose();
       }}
       onClick={(e) => {
-        if (e.target === ref.current) requestClose();
+        if (e.target === ref.current) requestGuardedClose();
       }}
     >
       <ModalCloseContext.Provider value={requestClose}>
         <div className="modal-content">
-          <button type="button" className="close" aria-label="Закрыть окно" onClick={requestClose}>
+          <button
+            type="button"
+            className="close"
+            aria-label="Закрыть окно"
+            onClick={requestGuardedClose}
+          >
             ×
           </button>
           <p className="eyebrow">Stitches &amp; Stories</p>
