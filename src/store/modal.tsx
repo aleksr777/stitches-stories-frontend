@@ -13,6 +13,59 @@ import { createPortal } from 'react-dom';
 const CLOSE_DURATION_MS = 400;
 const ModalCloseContext = createContext<(() => void) | null>(null);
 const openedDialogs: HTMLDialogElement[] = [];
+let pageScrollLock:
+  | {
+      x: number;
+      y: number;
+      rootMinHeight: string;
+      rootOverflowY: string;
+      bodyPosition: string;
+      bodyTop: string;
+      bodyLeft: string;
+      bodyRight: string;
+      bodyWidth: string;
+    }
+  | null = null;
+
+const lockPageScroll = () => {
+  if (pageScrollLock) return;
+  const root = document.documentElement;
+  const body = document.body;
+  pageScrollLock = {
+    x: window.scrollX,
+    y: window.scrollY,
+    rootMinHeight: root.style.minHeight,
+    rootOverflowY: root.style.overflowY,
+    bodyPosition: body.style.position,
+    bodyTop: body.style.top,
+    bodyLeft: body.style.left,
+    bodyRight: body.style.right,
+    bodyWidth: body.style.width,
+  };
+  root.style.minHeight = root.scrollHeight + 'px';
+  root.style.overflowY = 'scroll';
+  body.style.position = 'fixed';
+  body.style.top = -pageScrollLock.y + 'px';
+  body.style.left = -pageScrollLock.x + 'px';
+  body.style.right = '0';
+  body.style.width = '100%';
+};
+
+const unlockPageScroll = () => {
+  if (!pageScrollLock) return;
+  const lock = pageScrollLock;
+  pageScrollLock = null;
+  const root = document.documentElement;
+  const body = document.body;
+  root.style.minHeight = lock.rootMinHeight;
+  root.style.overflowY = lock.rootOverflowY;
+  body.style.position = lock.bodyPosition;
+  body.style.top = lock.bodyTop;
+  body.style.left = lock.bodyLeft;
+  body.style.right = lock.bodyRight;
+  body.style.width = lock.bodyWidth;
+  window.scrollTo(lock.x, lock.y);
+};
 
 const canScrollWithin = (target: EventTarget | null, dialog: HTMLDialogElement, deltaY: number) => {
   if (!(target instanceof Node) || !dialog.contains(target)) return false;
@@ -66,10 +119,9 @@ const Modal = ({
   useEffect(() => {
     const dialog = ref.current;
     const priorFocus = document.activeElement as HTMLElement | null;
-    const lockedScrollX = window.scrollX;
-    const lockedScrollY = window.scrollY;
     dialog?.showModal();
     if (dialog) openedDialogs.push(dialog);
+    if (openedDialogs.length === 1) lockPageScroll();
     openFrame.current = window.requestAnimationFrame(() => setState('open'));
 
     let touchY: number | null = null;
@@ -92,12 +144,6 @@ const Modal = ({
       const deltaY = touchY - nextY;
       touchY = nextY;
       if (!canScrollWithin(event.target, dialog, deltaY)) event.preventDefault();
-    };
-    const preventWindowScroll = () => {
-      if (!isTopmost()) return;
-      if (window.scrollX !== lockedScrollX || window.scrollY !== lockedScrollY) {
-        window.scrollTo(lockedScrollX, lockedScrollY);
-      }
     };
     const preventBackgroundKeys = (event: KeyboardEvent) => {
       if (!dialog || !isTopmost()) return;
@@ -128,7 +174,6 @@ const Modal = ({
     document.addEventListener('touchstart', rememberTouch, { passive: true });
     document.addEventListener('touchmove', preventBackgroundTouch, { passive: false });
     document.addEventListener('keydown', preventBackgroundKeys);
-    window.addEventListener('scroll', preventWindowScroll, { passive: true });
 
     return () => {
       if (openFrame.current !== null) window.cancelAnimationFrame(openFrame.current);
@@ -137,11 +182,11 @@ const Modal = ({
       document.removeEventListener('touchstart', rememberTouch);
       document.removeEventListener('touchmove', preventBackgroundTouch);
       document.removeEventListener('keydown', preventBackgroundKeys);
-      window.removeEventListener('scroll', preventWindowScroll);
       if (dialog) {
         const index = openedDialogs.lastIndexOf(dialog);
         if (index !== -1) openedDialogs.splice(index, 1);
       }
+      if (!openedDialogs.length) unlockPageScroll();
       dialog?.close();
       priorFocus?.focus();
     };
