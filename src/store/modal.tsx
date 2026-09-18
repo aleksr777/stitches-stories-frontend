@@ -31,10 +31,7 @@ const canScrollWithin = (target: EventTarget | null, dialog: HTMLDialogElement, 
   return false;
 };
 
-export const ModalDismissButton = ({
-  onClick,
-  ...props
-}: ComponentPropsWithoutRef<'button'>) => {
+export const ModalDismissButton = ({ onClick, ...props }: ComponentPropsWithoutRef<'button'>) => {
   const requestClose = useContext(ModalCloseContext);
   return (
     <button
