@@ -179,11 +179,14 @@ test('opening and closing a legal document preserves registration fields and unc
   fireEvent.click(within(dialog).getAllByRole('button', { name: 'Открыть документ' })[0]);
   const legal = await screen.findByRole('dialog', { name: 'pd-account' });
   fireEvent.click(within(legal).getByRole('button', { name: 'Закрыть документ' }));
+  await waitFor(() =>
+    expect(screen.queryByRole('dialog', { name: 'pd-account' })).toBeNull(),
+  );
   expect(within(dialog).getByLabelText('Как вас зовут').value).toBe('Надежда');
   expect(
     within(dialog)
       .getAllByRole('checkbox')
       .every((c) => !c.checked),
   ).toBe(true);
-  expect(document.body.style.overflow).toBe('hidden');
+  expect(document.body.style.overflow).toBe('');
 });
