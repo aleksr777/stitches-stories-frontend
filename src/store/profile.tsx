@@ -6,7 +6,7 @@ import { apiRequest } from '../shared/api/api-client';
 import { money, statusNames, type OrderRequest } from './types';
 import { DocumentButton } from './legal';
 import { NewsletterDialog } from './newsletter';
-import Modal from './modal';
+import Modal, { ModalDismissButton } from './modal';
 type ConsentEvent = {
   id: string;
   documentId: string;
@@ -219,9 +219,9 @@ const Profile = () => {
           </p>
           {error && <p role="alert">{error}</p>}
           <div className="actions">
-            <button className="button secondary" disabled={busy} onClick={() => setDialog('')}>
+            <ModalDismissButton className="button secondary" disabled={busy}>
               Оставить кабинет
-            </button>
+            </ModalDismissButton>
             <button className="button" disabled={busy} onClick={() => void withdraw('account')}>
               Отозвать и закрыть
             </button>
