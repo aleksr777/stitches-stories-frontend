@@ -1,8 +1,35 @@
-import { useEffect, useId, useRef, useState, type PropsWithChildren } from 'react';
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type ComponentPropsWithoutRef,
+  type PropsWithChildren,
+} from 'react';
 import { createPortal } from 'react-dom';
 
 let openedDialogs = 0;
 const CLOSE_DURATION_MS = 400;
+const ModalCloseContext = createContext<(() => void) | null>(null);
+
+export const ModalDismissButton = ({
+  onClick,
+  ...props
+}: ComponentPropsWithoutRef<'button'>) => {
+  const requestClose = useContext(ModalCloseContext);
+  return (
+    <button
+      type="button"
+      {...props}
+      onClick={(event) => {
+        onClick?.(event);
+        if (!event.defaultPrevented) requestClose?.();
+      }}
+    />
+  );
+};
 
 const Modal = ({
   title,
@@ -54,14 +81,16 @@ const Modal = ({
         if (e.target === ref.current) requestClose();
       }}
     >
-      <div className="modal-content">
-        <button type="button" className="close" aria-label="Закрыть окно" onClick={requestClose}>
-          ×
-        </button>
-        <p className="eyebrow">Stitches &amp; Stories</p>
-        <h2 id={label}>{title}</h2>
-        {children}
-      </div>
+      <ModalCloseContext.Provider value={requestClose}>
+        <div className="modal-content">
+          <button type="button" className="close" aria-label="Закрыть окно" onClick={requestClose}>
+            ×
+          </button>
+          <p className="eyebrow">Stitches &amp; Stories</p>
+          <h2 id={label}>{title}</h2>
+          {children}
+        </div>
+      </ModalCloseContext.Provider>
     </dialog>,
     document.body,
   );
