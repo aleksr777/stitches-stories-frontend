@@ -4,7 +4,7 @@ import { useAuth } from '../features/auth/model/use-auth';
 import { useStore } from './context';
 import AuthDialog, { type AuthMode } from './auth-dialog';
 import Icon from './icons';
-import Modal from './modal';
+import Modal, { ModalDismissButton } from './modal';
 import { DocumentButton } from './legal';
 import { NewsletterDialog } from './newsletter';
 const Layout = () => {
@@ -169,9 +169,7 @@ const Layout = () => {
           </p>
           <DocumentButton id="cookies-policy">Подробнее о cookie</DocumentButton>
           <p>
-            <button className="button" onClick={() => setDialog('')}>
-              Понятно
-            </button>
+            <ModalDismissButton className="button">Понятно</ModalDismissButton>
           </p>
         </Modal>
       )}
