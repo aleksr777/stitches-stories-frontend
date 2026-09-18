@@ -182,6 +182,7 @@ const Admin = () => {
       {editing && (
         <Modal
           title={editing.id ? 'Редактирование изделия' : 'Новое изделие'}
+          className="product-editor-modal"
           onClose={() => {
             if (!busy) {
               setEditing(null);
@@ -189,70 +190,75 @@ const Admin = () => {
             }
           }}
         >
-          <form className="form" onSubmit={(e) => void save(e)}>
+          <form className="form product-editor-form" onSubmit={(e) => void save(e)}>
             <fieldset className="product-editor-fields" disabled={busy}>
-              <label>
-                Название
-                <input
-                  name="name"
-                  defaultValue={editing.name}
-                  minLength={2}
-                  maxLength={200}
-                  required
-                />
-              </label>
-              <label>
-                Адрес в каталоге
-                <input
-                  name="slug"
-                  defaultValue={editing.slug}
-                  pattern="[a-z0-9]+(-[a-z0-9]+)*"
-                  maxLength={100}
-                  required
-                />
-              </label>
-              <label>
-                Категория
-                <select name="category" defaultValue={editing.category}>
-                  <option value="keychains">Брелок</option>
-                  <option value="covers">Обложка</option>
-                </select>
-              </label>
-              <label>
-                Цена, ₽
-                <input
-                  name="priceRub"
-                  type="number"
-                  min={1}
-                  max={1000000}
-                  defaultValue={editing.priceRub}
-                  required
-                />
-              </label>
-              <label>
-                Описание
-                <textarea
-                  name="description"
-                  defaultValue={editing.description}
-                  minLength={10}
-                  maxLength={6000}
-                  required
-                />
-              </label>
-              {(['materials', 'dimensions', 'productionTime'] as const).map((key, i) => (
-                <label key={key}>
-                  {['Материалы', 'Размеры', 'Срок изготовления'][i]}
+              <div className="product-editor-details">
+                <label>
+                  Название
                   <input
-                    name={key}
-                    defaultValue={editing[key]}
+                    name="name"
+                    defaultValue={editing.name}
                     minLength={2}
-                    maxLength={key === 'materials' ? 250 : key === 'dimensions' ? 100 : 160}
+                    maxLength={200}
                     required
                   />
                 </label>
-              ))}
+                <label>
+                  Адрес в каталоге
+                  <input
+                    name="slug"
+                    defaultValue={editing.slug}
+                    pattern="[a-z0-9]+(-[a-z0-9]+)*"
+                    maxLength={100}
+                    required
+                  />
+                </label>
+                <label>
+                  Категория
+                  <select name="category" defaultValue={editing.category}>
+                    <option value="keychains">Брелок</option>
+                    <option value="covers">Обложка</option>
+                  </select>
+                </label>
+                <label>
+                  Цена, ₽
+                  <input
+                    name="priceRub"
+                    type="number"
+                    min={1}
+                    max={1000000}
+                    defaultValue={editing.priceRub}
+                    required
+                  />
+                </label>
+                <label className="product-editor-wide">
+                  Описание
+                  <textarea
+                    name="description"
+                    defaultValue={editing.description}
+                    minLength={10}
+                    maxLength={6000}
+                    required
+                  />
+                </label>
+                {(['materials', 'dimensions', 'productionTime'] as const).map((key, i) => (
+                  <label
+                    className={key === 'productionTime' ? 'product-editor-wide' : undefined}
+                    key={key}
+                  >
+                    {['Материалы', 'Размеры', 'Срок изготовления'][i]}
+                    <input
+                      name={key}
+                      defaultValue={editing[key]}
+                      minLength={2}
+                      maxLength={key === 'materials' ? 250 : key === 'dimensions' ? 100 : 160}
+                      required
+                    />
+                  </label>
+                ))}
+              </div>
               <ProductImageEditor images={images} onChange={setImages} disabled={busy} />
-              <label>
+              <label className="product-editor-stock">
                 Доступное количество
                 <input
                   type="number"
@@ -263,22 +269,28 @@ const Admin = () => {
                   required
                 />
               </label>
-              {(['featured', 'active', 'isDemo'] as const).map((key, i) => (
-                <label className="check" key={key}>
-                  <input name={key} type="checkbox" defaultChecked={editing[key]} />
-                  <span>
-                    {
-                      ['Показывать на главной', 'Показывать в каталоге', 'Демонстрационный товар'][
-                        i
-                      ]
-                    }
-                  </span>
-                </label>
-              ))}
+              <div className="product-editor-options">
+                {(['featured', 'active', 'isDemo'] as const).map((key, i) => (
+                  <label className="check" key={key}>
+                    <input name={key} type="checkbox" defaultChecked={editing[key]} />
+                    <span>
+                      {
+                        [
+                          'Показывать на главной',
+                          'Показывать в каталоге',
+                          'Демонстрационный товар',
+                        ][i]
+                      }
+                    </span>
+                  </label>
+                ))}
+              </div>
               {error && <p role="alert">{error}</p>}
-              <button className="button" disabled={busy}>
-                {busy ? 'Сохраняем изделие и фотографии…' : 'Сохранить изделие'}
-              </button>
+              <div className="product-editor-actions">
+                <button className="button" disabled={busy}>
+                  {busy ? 'Сохраняем изделие и фотографии…' : 'Сохранить изделие'}
+                </button>
+              </div>
             </fieldset>
           </form>
         </Modal>

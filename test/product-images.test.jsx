@@ -115,6 +115,13 @@ test('administrator creates a product with previews, selects a cover and retries
   const { saves } = start('/admin/shop', { failSave: true });
   fireEvent.click(await screen.findByRole('button', { name: 'Новое изделие' }));
   const dialog = screen.getByRole('dialog', { name: 'Новое изделие' });
+  expect(dialog.className).toContain('product-editor-modal');
+  expect(
+    within(dialog).getByLabelText('Название').closest('.product-editor-details'),
+  ).not.toBeNull();
+  expect(
+    within(dialog).getByLabelText('Показывать на главной').closest('.product-editor-options'),
+  ).not.toBeNull();
   for (const [label, value] of [
     ['Название', 'Летний сад'],
     ['Адрес в каталоге', 'summer-garden'],

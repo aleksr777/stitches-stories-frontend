@@ -716,7 +716,7 @@ dd {
   border-radius: 14px;
   padding: 0;
   color: inherit;
-  width: 580px;
+  width: var(--modal-width, 580px);
   max-width: calc(100% - 2rem);
   max-height: calc(100dvh - 2rem);
   overflow: auto;

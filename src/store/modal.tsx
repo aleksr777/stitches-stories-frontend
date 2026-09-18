@@ -5,7 +5,8 @@ const Modal = ({
   title,
   onClose,
   children,
-}: PropsWithChildren<{ title: string; onClose: () => void }>) => {
+  className = '',
+}: PropsWithChildren<{ title: string; onClose: () => void; className?: string }>) => {
   const ref = useRef<HTMLDialogElement>(null);
   const label = useId();
   useEffect(() => {
@@ -24,7 +25,7 @@ const Modal = ({
   return createPortal(
     <dialog
       ref={ref}
-      className="modal"
+      className={'modal' + (className ? ' ' + className : '')}
       aria-labelledby={label}
       onCancel={(e) => {
         e.preventDefault();
