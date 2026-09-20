@@ -37,10 +37,22 @@
   --accent: #8d4e60;
   --line: #ddcfc5;
   --muted: #756860;
+  --scrollbar-width: clamp(8px, 6px + 0.35vw, 18px);
 }
 
-* {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
+}
+
+html {
+  scrollbar-width: none;
+}
+
+html::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }
 
 body {
@@ -711,15 +723,22 @@ dd {
 }
 
 .modal {
+  --modal-gap: clamp(0.5rem, 2vw, 2rem);
+
   border: 1px solid var(--line);
-  background: #faf7f2;
   border-radius: 14px;
   padding: 0;
-  color: inherit;
   width: var(--modal-width, 580px);
-  max-width: calc(100% - 2rem);
-  max-height: calc(100dvh - 2rem);
+  max-width: calc(100% - 2 * var(--modal-gap));
+  max-height: calc(
+    100dvh - 2 * var(--modal-gap) - env(safe-area-inset-top) - env(safe-area-inset-bottom)
+  );
   overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #a56f7e #eee4dc;
+  background: #faf7f2;
+  color: inherit;
+  box-shadow: 0 24px 70px rgb(56 47 45 / 20%);
   opacity: 0;
   transform: translateY(12px) scale(0.985);
   transform-origin: center;
@@ -731,6 +750,24 @@ dd {
 .modal[data-state='open'] {
   opacity: 1;
   transform: translateY(0) scale(1);
+}
+
+.modal::-webkit-scrollbar {
+  width: var(--scrollbar-width);
+}
+
+.modal::-webkit-scrollbar-track {
+  background: #eee4dc;
+}
+
+.modal::-webkit-scrollbar-thumb {
+  border: 2px solid #eee4dc;
+  border-radius: 999px;
+  background: #a56f7e;
+}
+
+.modal::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
 }
 
 .modal[data-state='closing'] {
@@ -747,48 +784,41 @@ dd {
 }
 
 .modal[data-state='open']::backdrop {
-  background: #382f2d88;
+  background: rgb(56 47 45 / 53%);
   backdrop-filter: blur(3px);
 }
 
-.modal-scrollbar-ghost {
-  position: fixed;
-  inset: 0 0 0 auto;
-  z-index: 0;
-  height: 100dvh;
-  background: #f0ece8;
-  pointer-events: none;
-}
-
-.modal-scrollbar-ghost-thumb {
-  width: 100%;
-  min-height: 28px;
-  border: 3px solid transparent;
-  border-radius: 999px;
-  background: #8f8580;
-  background-clip: padding-box;
-}
-
 .modal-content {
-  padding: 2.3rem;
   position: relative;
+  min-width: 0;
+  padding: clamp(1.4rem, 3vw, 2.3rem);
 }
 
 .modal h2 {
+  padding-right: 2.5rem;
   font-size: 2.45rem;
-  padding-right: 1.25rem;
 }
 
 .close {
   position: absolute;
   top: 0.65rem;
   right: 0.8rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 40px;
   height: 40px;
   border: 0;
+  border-radius: 50%;
   background: transparent;
   color: inherit;
   font-size: 1.7rem;
+  line-height: 1;
+}
+
+.close:hover,
+.close:focus-visible {
+  background: rgb(141 78 96 / 12%);
 }
 
 .auth-links {
@@ -1335,8 +1365,7 @@ dd {
   }
 
   .modal {
-    max-width: calc(100% - 1rem);
-    max-height: calc(100dvh - 1rem);
+    --modal-gap: 0.5rem;
   }
 
   .modal-content {
