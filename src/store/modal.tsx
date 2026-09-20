@@ -18,7 +18,6 @@ let pageScrollLock: {
   x: number;
   y: number;
   rootMinHeight: string;
-  rootOverflowY: string;
   bodyPosition: string;
   bodyTop: string;
   bodyLeft: string;
@@ -35,7 +34,6 @@ const lockPageScroll = () => {
     x: window.scrollX,
     y: window.scrollY,
     rootMinHeight: root.style.minHeight,
-    rootOverflowY: root.style.overflowY,
     bodyPosition: body.style.position,
     bodyTop: body.style.top,
     bodyLeft: body.style.left,
@@ -43,7 +41,6 @@ const lockPageScroll = () => {
     bodyWidth: body.style.width,
   };
   root.style.minHeight = root.scrollHeight + 'px';
-  root.style.overflowY = 'scroll';
   body.style.position = 'fixed';
   body.style.top = bodyRect.top + 'px';
   body.style.left = bodyRect.left + 'px';
@@ -64,7 +61,6 @@ const unlockPageScroll = () => {
   body.style.right = lock.bodyRight;
   body.style.width = lock.bodyWidth;
   root.style.minHeight = lock.rootMinHeight;
-  root.style.overflowY = lock.rootOverflowY;
 };
 
 const canScrollWithin = (target: EventTarget | null, dialog: HTMLDialogElement, deltaY: number) => {
