@@ -4,7 +4,6 @@ import { expect, test, vi } from 'vitest';
 import CustomScrollbar from '../src/components/scrollbar/custom-scrollbar';
 
 test('custom store scrollbar appears for a document taller than the viewport', async () => {
-  vi.spyOn(document, 'scrollingElement', 'get').mockReturnValue(document.documentElement);
   vi.spyOn(document.documentElement, 'clientHeight', 'get').mockReturnValue(800);
   vi.spyOn(document.documentElement, 'scrollHeight', 'get').mockReturnValue(2400);
 
