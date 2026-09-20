@@ -751,6 +751,24 @@ dd {
   backdrop-filter: blur(3px);
 }
 
+.modal-scrollbar-ghost {
+  position: fixed;
+  inset: 0 0 0 auto;
+  z-index: 0;
+  height: 100dvh;
+  background: #f0ece8;
+  pointer-events: none;
+}
+
+.modal-scrollbar-ghost-thumb {
+  width: 100%;
+  min-height: 28px;
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background: #8f8580;
+  background-clip: padding-box;
+}
+
 .modal-content {
   padding: 2.3rem;
   position: relative;
