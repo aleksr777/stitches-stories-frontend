@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import CustomScrollbar from '../components/scrollbar/custom-scrollbar';
 import { useAuth } from '../features/auth/model/use-auth';
 import { useStore } from './context';
 import AuthDialog, { type AuthMode } from './auth-dialog';
@@ -36,6 +37,7 @@ const Layout = () => {
   };
   return (
     <>
+      <CustomScrollbar />
       <a className="skip-link" href="#main">
         К содержимому
       </a>
