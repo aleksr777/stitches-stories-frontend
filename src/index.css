@@ -37,7 +37,7 @@
   --accent: #8d4e60;
   --line: #ddcfc5;
   --muted: #756860;
-  --scrollbar-width: clamp(8px, 6px + 0.35vw, 18px);
+  --scrollbar-width: clamp(8px, 0.75rem, 18px);
 }
 
 *,
@@ -723,7 +723,7 @@ dd {
 }
 
 .modal {
-  --modal-gap: clamp(0.5rem, 2vw, 2rem);
+  --modal-gap: clamp(0.5rem, 1rem, 2rem);
 
   border: 1px solid var(--line);
   border-radius: 14px;
@@ -791,7 +791,7 @@ dd {
 .modal-content {
   position: relative;
   min-width: 0;
-  padding: clamp(1.4rem, 3vw, 2.3rem);
+  padding: clamp(1.4rem, 5%, 2.3rem);
 }
 
 .modal h2 {
