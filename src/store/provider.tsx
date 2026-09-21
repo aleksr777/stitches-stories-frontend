@@ -100,9 +100,17 @@ const StoreProvider = ({ children }: PropsWithChildren) => {
   return (
     <StoreContext.Provider
       value={{
-        products, documents, cart, favorites, loading, error,
+        products,
+        documents,
+        cart,
+        favorites,
+        loading,
+        error,
         retry: () => setRevision((value) => value + 1),
-        setQuantity, add, clearCart: () => setCart([]), toggleFavorite,
+        setQuantity,
+        add,
+        clearCart: () => setCart([]),
+        toggleFavorite,
         showDocument: setDocumentId,
       }}
     >

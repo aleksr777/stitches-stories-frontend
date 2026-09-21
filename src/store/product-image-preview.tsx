@@ -52,7 +52,11 @@ const ProductImagePreview = ({
     return (
       <div className="product-photo-error">
         <p>Не удалось показать фото.</p>
-        <button type="button" className="text-link" onClick={() => setAttempt((value) => value + 1)}>
+        <button
+          type="button"
+          className="text-link"
+          onClick={() => setAttempt((value) => value + 1)}
+        >
           Повторить фото {index + 1}
         </button>
       </div>

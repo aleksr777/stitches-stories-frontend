@@ -41,7 +41,9 @@ const CustomScrollbar = () => {
     const metrics = getScrollbarMetrics(trackRef.current);
     if (metrics.maxScroll <= 0 || metrics.thumbTravel <= 0) return;
     window.scrollTo({
-      top: drag.startScrollY + ((event.clientY - drag.startY) / metrics.thumbTravel) * metrics.maxScroll,
+      top:
+        drag.startScrollY +
+        ((event.clientY - drag.startY) / metrics.thumbTravel) * metrics.maxScroll,
     });
   };
 
@@ -55,7 +57,10 @@ const CustomScrollbar = () => {
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     const page = Math.max(window.innerHeight * 0.9, 1);
     const commands: Record<string, number> = {
-      ArrowDown: 40, ArrowUp: -40, PageDown: page, PageUp: -page,
+      ArrowDown: 40,
+      ArrowUp: -40,
+      PageDown: page,
+      PageUp: -page,
       ' ': event.shiftKey ? -page : page,
     };
     if (event.key === 'Home' || event.key === 'End') {
@@ -89,7 +94,10 @@ const CustomScrollbar = () => {
       <div
         ref={thumbRef}
         className={styles.thumb}
-        style={{ height: state.thumbHeight + 'px', transform: 'translateY(' + state.thumbTop + 'px)' }}
+        style={{
+          height: state.thumbHeight + 'px',
+          transform: 'translateY(' + state.thumbTop + 'px)',
+        }}
         onPointerDown={handleThumbPointerDown}
         onPointerMove={handleThumbPointerMove}
         onPointerUp={stopDragging}

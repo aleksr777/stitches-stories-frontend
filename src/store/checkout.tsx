@@ -2,10 +2,11 @@ import { useRef, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../features/auth/model/use-auth';
 import { apiRequest } from '../shared/api/api-client';
+import CheckoutCart from './checkout-cart';
+import CheckoutRequestForm from './checkout-request-form';
 import { useStore } from './context';
-import { Acceptance, DocumentButton } from './legal';
-import { ProductImage } from './products';
 import { documentRef, money, type Receipt } from './types';
+
 const Checkout = () => {
   const { cart, products, documents, setQuantity, clearCart, retry, loading } = useStore();
   const { isAuth, isInitializing, role } = useAuth();
@@ -15,7 +16,7 @@ const Checkout = () => {
   const attempt = useRef<{ payload: string; key: string } | null>(null);
   const selected = cart.map((item) => ({
     item,
-    product: products.find((p) => p.id === item.productId),
+    product: products.find((product) => product.id === item.productId),
   }));
   const total = selected.reduce(
     (sum, { item, product }) => sum + (product?.priceRub ?? 0) * item.quantity,
@@ -24,13 +25,14 @@ const Checkout = () => {
   const unavailable = selected.some(
     ({ item, product }) => !product || product.stock < item.quantity,
   );
-  const offer = documents.find((d) => d.id === 'offer');
+  const offer = documents.find((document) => document.id === 'offer');
   const isOwner = role === 'admin';
   const roleIsLoading = isAuth && role === null;
-  const submit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+
+  const submit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     if (busy || !offer || unavailable || isOwner || roleIsLoading) return;
-    const form = new FormData(e.currentTarget);
+    const form = new FormData(event.currentTarget);
     if (!form.get('offer')) return;
     const payload = {
       name: String(form.get('name') ?? ''),
@@ -67,6 +69,7 @@ const Checkout = () => {
       setBusy(false);
     }
   };
+
   if (receipt)
     return (
       <section className="page narrow success">
@@ -95,137 +98,27 @@ const Checkout = () => {
         </Link>
       </section>
     );
+
   return (
     <section className="page">
       <p className="eyebrow">Совсем немного до вашей истории</p>
       <h1>Корзина и заявка</h1>
       <div className="checkout">
-        <div>
-          <div className="cart-items">
-            {selected.map(({ item, product }) => (
-              <article className="cart-row" key={item.productId}>
-                {product ? (
-                  <>
-                    <Link to={'/products/' + product.slug}>
-                      <ProductImage product={product} />
-                    </Link>
-                    <div>
-                      <h3>{product.name}</h3>
-                      <p>{money(product.priceRub)}</p>
-                      <label>
-                        Количество{' '}
-                        <input
-                          aria-label={'Количество: ' + product.name}
-                          type="number"
-                          min={1}
-                          max={Math.min(product.stock, 10)}
-                          value={item.quantity}
-                          onChange={(e) => setQuantity(item.productId, Number(e.target.value) || 1)}
-                        />
-                      </label>
-                    </div>
-                  </>
-                ) : (
-                  <p>Изделие больше не доступно в каталоге.</p>
-                )}
-                <button
-                  type="button"
-                  className="text-link"
-                  disabled={busy}
-                  onClick={() => setQuantity(item.productId, 0)}
-                >
-                  Убрать
-                </button>
-              </article>
-            ))}
-          </div>
-          <div className="totals">
-            <span>Изделия</span>
-            <strong>{money(total)}</strong>
-          </div>
-          <p className="muted">
-            Стоимость доставки уточним отдельно. Отправка заявки не списывает деньги и не
-            резервирует изделие.
-          </p>
-        </div>
-        {isOwner ? (
-          <aside className="form checkout-form">
-            <h2>Покупательские заявки</h2>
-            <p className="notice">
-              Вы управляете магазином. Для владельца не требуются согласия покупателя, а заявки и
-              избранное недоступны.
-            </p>
-            <Link className="button secondary full" to="/admin/shop">
-              Перейти к управлению магазином
-            </Link>
-            <button className="button full" disabled>
-              Отправить заявку мастеру
-            </button>
-          </aside>
-        ) : (
-          <form className="form checkout-form" onSubmit={(e) => void submit(e)}>
-            <h2>Куда написать?</h2>
-            <p>Можно отправить заявку без регистрации.</p>
-            <label>
-              Ваше имя
-              <input name="name" autoComplete="name" required minLength={2} maxLength={200} />
-            </label>
-            <label>
-              Электронная почта
-              <input name="email" type="email" autoComplete="email" required maxLength={255} />
-            </label>
-            <label>
-              Город
-              <input
-                name="city"
-                autoComplete="address-level2"
-                required
-                minLength={2}
-                maxLength={150}
-              />
-            </label>
-            <label>
-              Телефон <small>по желанию</small>
-              <input
-                name="phone"
-                type="tel"
-                autoComplete="tel"
-                pattern="[+0-9 ()\-]{6,30}"
-                maxLength={30}
-              />
-            </label>
-            <label>
-              Пожелания <small>по желанию</small>
-              <textarea name="comment" rows={3} maxLength={1500} />
-            </label>
-            <Acceptance id="offer" label="Принимаю условия отправки заявки и покупки." />
-            <p className="muted">
-              Данные нужны для обработки вашей заявки.{' '}
-              <DocumentButton id="privacy">Политика обработки данных</DocumentButton>
-            </p>
-            {unavailable && !loading && (
-              <p className="error" role="alert">
-                Некоторые изделия недоступны в выбранном количестве. Измените корзину.
-              </p>
-            )}
-            {error && (
-              <div role="alert" className="error">
-                <p>{error}</p>
-                <button type="button" className="text-link" onClick={retry}>
-                  Обновить цены и наличие
-                </button>
-              </div>
-            )}
-            <button
-              className="button full"
-              disabled={busy || isInitializing || loading || !offer || unavailable || roleIsLoading}
-            >
-              {busy ? 'Отправляем…' : 'Отправить заявку мастеру'}
-            </button>
-          </form>
-        )}
+        <CheckoutCart selected={selected} total={total} busy={busy} setQuantity={setQuantity} />
+        <CheckoutRequestForm
+          isOwner={isOwner}
+          busy={busy}
+          disabled={busy || isInitializing || loading || unavailable || roleIsLoading}
+          unavailable={unavailable}
+          loading={loading}
+          hasOffer={!!offer}
+          error={error}
+          retry={retry}
+          onSubmit={(event) => void submit(event)}
+        />
       </div>
     </section>
   );
 };
+
 export default Checkout;

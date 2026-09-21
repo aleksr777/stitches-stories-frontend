@@ -70,11 +70,16 @@ export const useModalDialog = (onClose: () => void) => {
         target instanceof HTMLTextAreaElement ||
         target instanceof HTMLSelectElement ||
         (target instanceof HTMLElement && target.isContentEditable)
-      ) return;
+      )
+        return;
       const page = dialog.clientHeight;
       const deltas: Record<string, number> = {
-        ArrowDown: 40, ArrowUp: -40, PageDown: page, PageUp: -page,
-        Home: Number.NEGATIVE_INFINITY, End: Number.POSITIVE_INFINITY,
+        ArrowDown: 40,
+        ArrowUp: -40,
+        PageDown: page,
+        PageUp: -page,
+        Home: Number.NEGATIVE_INFINITY,
+        End: Number.POSITIVE_INFINITY,
         ' ': event.shiftKey ? -page : page,
       };
       const deltaY = deltas[event.key];
@@ -98,7 +103,7 @@ export const useModalDialog = (onClose: () => void) => {
       dialog.close();
       priorFocus?.focus({ preventScroll: true });
     };
-  }, [onClose]);
+  }, []);
 
   return { ref, label, state, requestClose, requestPointerClose };
 };

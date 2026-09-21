@@ -57,7 +57,11 @@ const ProductImageEditor = ({ images, onChange, disabled, required = false }: Pr
         PNG или WebP, до 8 МБ каждая. Первое фото — основное. Фотографии загрузятся при сохранении
         изделия.
       </p>
-      {error && <p role="alert" className="error">{error}</p>}
+      {error && (
+        <p role="alert" className="error">
+          {error}
+        </p>
+      )}
       {images.length > 0 && (
         <ol className="product-image-list">
           {images.map((image, index) => (
@@ -74,7 +78,9 @@ const ProductImageEditor = ({ images, onChange, disabled, required = false }: Pr
                     className="text-link"
                     disabled={disabled}
                     aria-label={'Сделать фото ' + (index + 1) + ' основным'}
-                    onClick={() => onChange([image, ...images.filter((item) => item.key !== image.key)])}
+                    onClick={() =>
+                      onChange([image, ...images.filter((item) => item.key !== image.key)])
+                    }
                   >
                     Сделать основным
                   </button>

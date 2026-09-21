@@ -1,202 +1,14 @@
 import { useState } from 'react';
-import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { useAuth } from '../features/auth/model/use-auth';
 import { useStore } from './context';
-import Icon from './icons';
-import { money, type Product } from './types';
-import { productImageUrl } from './product-image-url';
-import './product-images.css';
-export const ProductImage = ({
-  product,
-  path = product.images[0],
-}: {
-  product: Product;
-  path?: string;
-}) => {
-  const [failed, setFailed] = useState('');
-  const url = path ? productImageUrl(path) : '';
-  return url && failed !== url ? (
-    <img
-      className="product-photo"
-      src={url}
-      alt={product.name}
-      loading="lazy"
-      decoding="async"
-      onError={() => setFailed(url)}
-    />
-  ) : (
-    <div className={'photo-placeholder ' + product.category}>
-      <Icon name="camera" />
-      <span>{url ? 'Фотография временно недоступна' : 'Здесь будет фотография изделия'}</span>
-    </div>
-  );
-};
-const ProductGallery = ({ product }: { product: Product }) => {
-  const [selected, setSelected] = useState(0);
-  return (
-    <div className="product-gallery">
-      <ProductImage product={product} path={product.images[selected] ?? product.images[0]} />
-      {product.images.length > 1 && (
-        <div className="product-thumbnails" role="group" aria-label="Фотографии изделия">
-          {product.images.map((path, index) => (
-            <button
-              type="button"
-              key={path}
-              aria-label={'Показать фотографию ' + (index + 1)}
-              aria-pressed={selected === index}
-              onClick={() => setSelected(index)}
-            >
-              <img src={productImageUrl(path)} alt="" loading="lazy" />
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-};
-export const ProductCard = ({ product }: { product: Product }) => {
-  const { favorites, toggleFavorite } = useStore();
-  const { isAuth, role } = useAuth();
-  const navigate = useNavigate();
-  const [error, setError] = useState('');
-  const [busy, setBusy] = useState(false);
-  const isOwner = role === 'admin';
-  const roleIsLoading = isAuth && role === null;
-  const favorite = async () => {
-    if (isOwner || roleIsLoading) return;
-    if (!isAuth) {
-      navigate('?auth=login');
-      return;
-    }
-    try {
-      setBusy(true);
-      await toggleFavorite(product.id);
-    } catch {
-      setError('Не удалось сохранить избранное.');
-    } finally {
-      setBusy(false);
-    }
-  };
-  return (
-    <article className="product-card">
-      <div className="product-visual">
-        <Link to={'/products/' + product.slug} aria-label={product.name}>
-          <ProductImage product={product} />
-        </Link>
-        <button
-          className={'favorite ' + (favorites.includes(product.id) ? 'selected' : '')}
-          aria-label={'В избранное: ' + product.name}
-          aria-pressed={favorites.includes(product.id)}
-          onClick={() => void favorite()}
-          disabled={busy || isOwner || roleIsLoading}
-        >
-          <Icon name="heart" />
-        </button>
-        {product.isDemo && <span className="demo-tag">Пример</span>}
-      </div>
-      <small>{product.category === 'covers' ? 'Обложка на паспорт' : 'Брелок с вышивкой'}</small>
-      <h3>
-        <Link to={'/products/' + product.slug}>{product.name}</Link>
-      </h3>
-      <p>{money(product.priceRub)}</p>
-      {error && <p role="alert">{error}</p>}
-    </article>
-  );
-};
-export const Catalog = ({ favoritesOnly = false }: { favoritesOnly?: boolean }) => {
-  const { products, favorites, loading } = useStore();
-  const [params, setParams] = useSearchParams();
-  const [sort, setSort] = useState('default');
-  const category = params.get('category') ?? '';
-  const query = params.get('q') ?? '';
-  const filtered = products
-    .filter(
-      (p) =>
-        (!favoritesOnly || favorites.includes(p.id)) &&
-        (!category || p.category === category) &&
-        p.name.toLowerCase().includes(query.toLowerCase()),
-    )
-    .sort((a, b) =>
-      sort === 'asc' ? a.priceRub - b.priceRub : sort === 'desc' ? b.priceRub - a.priceRub : 0,
-    );
-  const catalogIsEmpty = !favoritesOnly && products.length === 0;
-  return (
-    <section className="page">
-      <p className="eyebrow">Выбрано с теплом</p>
-      <h1>{favoritesOnly ? 'Ваше избранное' : 'Найдите свою историю'}</h1>
-      <p className="lead">Брелоки и обложки, в которых живёт немного тепла.</p>
-      {!catalogIsEmpty && (
-        <div className="catalog-tools">
-          <div className="tabs">
-            {[
-              ['', 'Все изделия'],
-              ['keychains', 'Брелоки'],
-              ['covers', 'Обложки'],
-            ].map(([id, label]) => (
-              <button
-                key={id}
-                className={category === id ? 'active' : ''}
-                onClick={() => {
-                  const next = new URLSearchParams(params);
-                  if (id) next.set('category', id);
-                  else next.delete('category');
-                  setParams(next);
-                }}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-          <label className="search-field">
-            <Icon name="search" />
-            <input
-              aria-label="Поиск изделия"
-              placeholder="Найти что-то своё"
-              value={query}
-              onChange={(e) => {
-                const next = new URLSearchParams(params);
-                if (e.target.value) next.set('q', e.target.value);
-                else next.delete('q');
-                setParams(next, { replace: true });
-              }}
-            />
-          </label>
-          <select aria-label="Сортировка" value={sort} onChange={(e) => setSort(e.target.value)}>
-            <option value="default">Подборка мастерской</option>
-            <option value="asc">Сначала дешевле</option>
-            <option value="desc">Сначала дороже</option>
-          </select>
-        </div>
-      )}
-      {loading ? (
-        <p role="status">Загружаем коллекцию…</p>
-      ) : catalogIsEmpty ? (
-        <div className="empty collection-empty catalog-empty">
-          <p className="eyebrow">Скоро здесь будет тепло</p>
-          <h2>Коллекция скоро появится</h2>
-          <p>
-            Мы бережно готовим новые изделия с вышивкой. Загляните чуть позже — здесь появятся новые
-            истории.
-          </p>
-        </div>
-      ) : filtered.length ? (
-        <div className="product-grid">
-          {filtered.map((p) => (
-            <ProductCard key={p.id} product={p} />
-          ))}
-        </div>
-      ) : (
-        <div className="empty">
-          <h2>Пока ничего не найдено</h2>
-          <p>Попробуйте изменить поиск или загляните в коллекцию.</p>
-          <Link to="/catalog" className="text-link">
-            Вся коллекция →
-          </Link>
-        </div>
-      )}
-    </section>
-  );
-};
+import { ProductGallery } from './product-media';
+import { money } from './types';
+
+export { default as Catalog } from './catalog';
+export { default as ProductCard } from './product-card';
+export { ProductImage } from './product-media';
+
 export const ProductPage = () => {
   const { slug } = useParams();
   const { products, add, loading } = useStore();
@@ -204,7 +16,8 @@ export const ProductPage = () => {
   const [added, setAdded] = useState(false);
   const isOwner = role === 'admin';
   const roleIsLoading = isAuth && role === null;
-  const product = products.find((p) => p.slug === slug);
+  const product = products.find((value) => value.slug === slug);
+
   if (loading)
     return (
       <p className="page" role="status">
@@ -218,6 +31,7 @@ export const ProductPage = () => {
         <Link to="/catalog">Вернуться к коллекции</Link>
       </section>
     );
+
   return (
     <section className="page">
       <Link className="breadcrumb" to="/catalog">
