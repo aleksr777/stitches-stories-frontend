@@ -2,6 +2,10 @@ import { useState } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import CustomScrollbar from '../components/scrollbar/custom-scrollbar';
 import { useAuth } from '../features/auth/model/use-auth';
+import {
+  createAuthReturnState,
+  getAuthModalCloseTo,
+} from '../features/auth/model/auth-return-location';
 import { useStore } from './context';
 import AuthDialog, { type AuthMode } from './auth-dialog';
 import Icon from './icons';
@@ -23,17 +27,26 @@ const Layout = () => {
       : null;
   const favoriteUnavailable = isAuth && role !== 'user';
   const closeAuth = () => {
-    if (fromPath) navigate('/', { replace: true });
-    else {
+    if (!fromPath) {
       const params = new URLSearchParams(location.search);
       params.delete('auth');
+      const closeTo = getAuthModalCloseTo(location.state);
+      if (closeTo !== location.pathname + location.search + location.hash) {
+        navigate(closeTo, { replace: true });
+        return;
+      }
       navigate({ pathname: location.pathname, search: params.toString() }, { replace: true });
+      return;
     }
+    navigate(getAuthModalCloseTo(location.state), { replace: true });
   };
   const openAuth = () => {
     const params = new URLSearchParams(location.search);
     params.set('auth', 'login');
-    navigate({ pathname: location.pathname, search: params.toString() });
+    navigate(
+      { pathname: location.pathname, search: params.toString() },
+      { state: createAuthReturnState(location) },
+    );
   };
   return (
     <>
@@ -69,6 +82,7 @@ const Layout = () => {
             <Link
               className="icon-button"
               to={isAuth ? '/favorites' : '?auth=login'}
+              state={isAuth ? undefined : createAuthReturnState(location)}
               aria-label="Избранное"
             >
               <Icon name="heart" />

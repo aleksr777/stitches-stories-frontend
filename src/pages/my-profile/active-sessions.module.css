@@ -1,7 +1,7 @@
 .section {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 1.25rem;
 }
 
 .header {
@@ -9,27 +9,30 @@
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 0.9rem;
 }
 
 .title {
   margin: 0;
-  font-size: 25px;
+  font-family: Cormorant, Georgia, serif;
+  font-size: 3.25rem;
+  line-height: 1.08;
 }
 
 .list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 0.9rem;
 }
 
 .card {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 14px;
-  border: 1px solid #d5d5d5;
-  border-radius: 8px;
+  gap: 0.45rem;
+  padding: 1.2rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fffdfa;
 }
 
 .cardHeader {
@@ -37,34 +40,34 @@
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 0.6rem;
 }
 
 .current {
   padding: 2px 8px;
   border-radius: 999px;
-  background-color: #e7edff;
-  font-size: 13px;
+  background-color: #f0d7d6;
+  color: #663846;
+  font-size: 0.72rem;
 }
 
 .terminateButton,
 .terminateAllButton {
   width: fit-content;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 14px;
+  border: 1px solid #8c4d50;
+  border-radius: 5px;
+  background: #8c4d50;
+  color: #fff;
+  font-size: 0.82rem;
 }
 
 .terminateButton {
-  margin-top: 6px;
-  padding: 8px 12px;
-  background-color: #f1d4d4;
+  margin-top: 0.4rem;
+  padding: 0.58rem 0.85rem;
 }
 
 .terminateAllButton {
-  padding: 9px 12px;
-  background-color: #f1d4d4;
+  padding: 0.62rem 0.9rem;
 }
 
 .terminateButton:disabled,
@@ -75,15 +78,24 @@
 
 .error {
   margin: 0;
-  color: #963745;
-  font-size: 14px;
+  color: #8c4d50;
+  font-size: 0.84rem;
+}
+
+.notice,
+.empty {
+  margin: 0;
+  padding: 1rem 1.1rem;
+  border-radius: 5px;
+  background: #f4e7d7;
+  color: var(--muted);
 }
 
 .backLink {
   width: fit-content;
   color: var(--accent);
   text-decoration: none;
-  font-size: 18px;
+  font-size: 0.9rem;
 }
 
 .backLink:hover {

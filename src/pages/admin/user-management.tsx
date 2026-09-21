@@ -22,7 +22,7 @@ const UserManagement = () => {
       setUsers(response.users);
       setTotal(response.total);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to load users');
+      setError(err instanceof Error ? err.message : 'Не удалось загрузить список пользователей.');
     } finally {
       setIsLoading(false);
     }
@@ -51,22 +51,26 @@ const UserManagement = () => {
 
   return (
     <section className={styles.wrapper}>
-      <h2 className={styles.title}>User management</h2>
+      <p className="eyebrow">Управление магазином</p>
+      <h1 className={styles.title}>Пользователи</h1>
 
       <form className={styles.searchForm} onSubmit={handleSearch}>
         <input
           value={search}
           onChange={(event) => setSearch(event.target.value)}
-          placeholder="Search by nickname, email or phone"
+          aria-label="Поиск пользователей"
+          placeholder="Имя, почта или телефон"
         />
-        <button type="submit" disabled={isLoading}>
-          Search
+        <button className={styles.primaryButton} type="submit" disabled={isLoading}>
+          Найти
         </button>
       </form>
 
       {error && <p className={styles.error}>{error}</p>}
-      {isLoading && <p>Loading users...</p>}
-      {!isLoading && users.length === 0 && <p>No users found.</p>}
+      {isLoading && <p className={styles.notice}>Загружаем пользователей…</p>}
+      {!isLoading && users.length === 0 && (
+        <p className={styles.empty}>По этому запросу пользователей не нашлось.</p>
+      )}
 
       <ul className={styles.userList}>
         {users.map((user) => (
@@ -77,13 +81,13 @@ const UserManagement = () => {
       {!isLoading && total > 0 && (
         <div className={styles.pagination}>
           <button type="button" disabled={page === 0} onClick={() => setPage(page - 1)}>
-            Previous
+            Назад
           </button>
           <span>
-            {firstResult}-{lastResult} of {total}
+            {firstResult}–{lastResult} из {total}
           </span>
           <button type="button" disabled={!hasNextPage} onClick={() => setPage(page + 1)}>
-            Next
+            Далее
           </button>
         </div>
       )}

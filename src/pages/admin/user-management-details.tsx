@@ -22,7 +22,7 @@ const UserManagementDetails = () => {
 
   const loadUser = useCallback(async () => {
     if (!Number.isInteger(userId) || userId <= 0) {
-      setError('Invalid user id');
+      setError('Некорректный идентификатор пользователя.');
       setIsLoading(false);
       return;
     }
@@ -32,7 +32,7 @@ const UserManagementDetails = () => {
       setIsLoading(true);
       setUser(await getAdminUserRequest(userId));
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to load user');
+      setError(err instanceof Error ? err.message : 'Не удалось загрузить данные пользователя.');
     } finally {
       setIsLoading(false);
     }
@@ -50,15 +50,18 @@ const UserManagementDetails = () => {
       await action();
       setMessage(successMessage);
       await loadUser();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Не удалось выполнить действие.');
+      throw err;
     } finally {
       setIsBusy(false);
     }
   };
 
-  const handleBlock = (reason: string, password: string) =>
-    runConfirmedAction(() => blockAdminUserRequest(userId, reason, password), 'User blocked');
-  const handleUnblock = (password: string) =>
-    runConfirmedAction(() => unblockAdminUserRequest(userId, password), 'User unblocked');
+  const handleBlock = (reason: string) =>
+    runConfirmedAction(() => blockAdminUserRequest(userId, reason), 'Пользователь заблокирован.');
+  const handleUnblock = () =>
+    runConfirmedAction(() => unblockAdminUserRequest(userId), 'Пользователь разблокирован.');
 
   const handleDelete = async (password: string) => {
     setError(null);
@@ -67,15 +70,19 @@ const UserManagementDetails = () => {
     try {
       await deleteAdminUserRequest(userId, password);
       navigate('/admin/users', { replace: true });
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Не удалось удалить учётную запись.');
+      throw err;
     } finally {
       setIsBusy(false);
     }
   };
-  if (isLoading) return <p>Loading user...</p>;
+  if (isLoading) return <p className={styles.notice}>Загружаем данные пользователя…</p>;
 
   return (
     <section className={styles.wrapper}>
-      <h2>User management</h2>
+      <p className="eyebrow">Управление магазином</p>
+      <h1 className={styles.title}>Карточка пользователя</h1>
 
       {error && !user ? (
         <p className={styles.error}>{error}</p>
@@ -84,12 +91,12 @@ const UserManagementDetails = () => {
           <div className={styles.userCard}>
             <UserManagementUserData user={user} />
             <Link className={styles.actionLink} to={`/admin/users/${user.id}/sessions`}>
-              Active sessions
+              Активные сеансы
             </Link>
           </div>
 
           {error && <p className={styles.error}>{error}</p>}
-          {message && <p>{message}</p>}
+          {message && <p className={styles.message}>{message}</p>}
 
           <UserManagementActions
             user={user}
@@ -102,7 +109,7 @@ const UserManagementDetails = () => {
       ) : null}
 
       <Link className={styles.actionLink} to="/admin/users">
-        Back to user management
+        Вернуться к списку пользователей
       </Link>
     </section>
   );

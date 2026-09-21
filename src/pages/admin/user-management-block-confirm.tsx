@@ -3,7 +3,7 @@ import styles from './user-management.module.css';
 
 type UserManagementBlockConfirmProps = {
   isBusy: boolean;
-  onConfirm: (reason: string, password: string) => Promise<void>;
+  onConfirm: (reason: string) => Promise<void>;
   onCancel: () => void;
 };
 
@@ -13,51 +13,36 @@ const UserManagementBlockConfirm = ({
   onCancel,
 }: UserManagementBlockConfirmProps) => {
   const [reason, setReason] = useState('');
-  const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
 
   const handleConfirm = async () => {
     try {
       setError(null);
-      await onConfirm(reason, password);
+      await onConfirm(reason);
       setReason('');
-      setPassword('');
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to block user');
+      setError(err instanceof Error ? err.message : 'Не удалось заблокировать пользователя');
     }
   };
 
   return (
     <div className={styles.confirmPanel}>
       <label className={styles.reasonField}>
-        Block reason (optional)
+        Причина блокировки (необязательно)
         <input value={reason} maxLength={255} onChange={(event) => setReason(event.target.value)} />
       </label>
-      <label className={styles.reasonField}>
-        Current administrator password
-        <input
-          type="password"
-          value={password}
-          autoComplete="current-password"
-          minLength={8}
-          maxLength={100}
-          onChange={(event) => {
-            setPassword(event.target.value);
-            setError(null);
-          }}
-        />
-      </label>
-      <p>Confirm blocking this user?</p>
+      <p>После блокировки все активные сеансы этого покупателя будут завершены.</p>
       <div className={styles.actions}>
         <button
           type="button"
-          disabled={isBusy || password.length < 8 || password.length > 100}
+          className={styles.secondaryButton}
+          disabled={isBusy}
           onClick={() => void handleConfirm()}
         >
-          Confirm block
+          Подтвердить блокировку
         </button>
-        <button type="button" disabled={isBusy} onClick={onCancel}>
-          Cancel
+        <button type="button" className={styles.textButton} disabled={isBusy} onClick={onCancel}>
+          Отмена
         </button>
       </div>
       {error && <p className={styles.error}>{error}</p>}

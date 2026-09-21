@@ -45,11 +45,13 @@ const Modal = ({
   const openTimer = useRef<number | null>(null);
   const openFrame = useRef<number | null>(null);
   const canPointerClose = useRef(false);
+  const closing = useRef(false);
   const label = useId();
   const [state, setState] = useState<'opening' | 'open' | 'closing'>('opening');
 
   const requestClose = () => {
-    if (state === 'closing') return;
+    if (closing.current) return;
+    closing.current = true;
     setState('closing');
     closeTimer.current = window.setTimeout(onClose, CLOSE_DURATION_MS);
   };

@@ -22,7 +22,7 @@ const UserManagementSessions = () => {
 
   const loadSessions = useCallback(async () => {
     if (!Number.isInteger(userId) || userId <= 0) {
-      setError('Invalid user id');
+      setError('Некорректный идентификатор пользователя.');
       setIsLoading(false);
       return;
     }
@@ -37,7 +37,7 @@ const UserManagementSessions = () => {
       setUser(loadedUser);
       setSessions(loadedSessions);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to load sessions');
+      setError(err instanceof Error ? err.message : 'Не удалось загрузить сеансы.');
     } finally {
       setIsLoading(false);
     }
@@ -54,7 +54,7 @@ const UserManagementSessions = () => {
       await revokeAdminUserSessionRequest(userId, sessionId);
       setSessions((current) => current.filter((session) => session.id !== sessionId));
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to terminate session');
+      setError(err instanceof Error ? err.message : 'Не удалось завершить сеанс.');
     } finally {
       setRevokingIds((current) => {
         const next = new Set(current);
@@ -73,21 +73,22 @@ const UserManagementSessions = () => {
       await revokeAllAdminUserSessionsRequest(userId);
       setSessions([]);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to terminate sessions');
+      setError(err instanceof Error ? err.message : 'Не удалось завершить сеансы.');
       await loadSessions();
     } finally {
       setIsRevokingAll(false);
     }
   };
 
-  if (isLoading) return <p>Loading sessions...</p>;
+  if (isLoading) return <p className={styles.notice}>Загружаем сеансы…</p>;
 
   return (
     <section className={styles.section}>
       <div className={styles.header}>
         <div>
-          <h2 className={styles.title}>Active sessions</h2>
-          {user && <p>User: {user.email}</p>}
+          <p className="eyebrow">Безопасность</p>
+          <h1 className={styles.title}>Активные сеансы</h1>
+          {user && <p>Пользователь: {user.email}</p>}
         </div>
         <button
           className={styles.terminateAllButton}
@@ -95,14 +96,14 @@ const UserManagementSessions = () => {
           onClick={() => void handleRevokeAll()}
           disabled={isRevokingAll || revokingIds.size > 0 || sessions.length === 0}
         >
-          {isRevokingAll ? 'Terminating...' : 'Terminate all sessions'}
+          {isRevokingAll ? 'Завершаем…' : 'Завершить все сеансы'}
         </button>
       </div>
 
       {error && <p className={styles.error}>{error}</p>}
 
       {sessions.length === 0 ? (
-        <p>No active sessions found.</p>
+        <p className={styles.empty}>Активных сеансов нет.</p>
       ) : (
         <div className={styles.list}>
           {sessions.map((session) => (
@@ -110,17 +111,17 @@ const UserManagementSessions = () => {
               <div className={styles.cardHeader}>
                 <strong>{getSessionDeviceLabel(session.user_agent)}</strong>
               </div>
-              <span>IP: {session.ip_address ?? 'Unknown'}</span>
-              <span>Signed in: {formatSessionDate(session.created_at)}</span>
-              <span>Last used: {formatSessionDate(session.last_used_at)}</span>
-              <span>Expires: {formatSessionDate(session.expires_at)}</span>
+              <span>IP: {session.ip_address ?? 'Неизвестно'}</span>
+              <span>Вход: {formatSessionDate(session.created_at)}</span>
+              <span>Последняя активность: {formatSessionDate(session.last_used_at)}</span>
+              <span>Истекает: {formatSessionDate(session.expires_at)}</span>
               <button
                 className={styles.terminateButton}
                 type="button"
                 onClick={() => void handleRevoke(session.id)}
                 disabled={revokingIds.has(session.id) || isRevokingAll}
               >
-                {revokingIds.has(session.id) ? 'Terminating...' : 'Terminate session'}
+                {revokingIds.has(session.id) ? 'Завершаем…' : 'Завершить сеанс'}
               </button>
             </article>
           ))}
@@ -128,7 +129,7 @@ const UserManagementSessions = () => {
       )}
 
       <Link className={styles.backLink} to={`/admin/users/${userId}`}>
-        Back to user profile
+        Вернуться к карточке пользователя
       </Link>
     </section>
   );

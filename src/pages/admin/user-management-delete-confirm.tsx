@@ -14,9 +14,9 @@ const UserManagementPasswordConfirm = ({
   isBusy,
   onConfirm,
   onCancel,
-  prompt = 'Delete this user permanently?',
-  confirmLabel = 'Confirm delete',
-  failureMessage = 'Failed to delete user',
+  prompt = 'Удалить учётную запись без возможности восстановления?',
+  confirmLabel = 'Удалить учётную запись',
+  failureMessage = 'Не удалось удалить учётную запись',
 }: UserManagementPasswordConfirmProps) => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -35,7 +35,7 @@ const UserManagementPasswordConfirm = ({
     <div className={styles.confirmPanel}>
       <p>{prompt}</p>
       <label className={styles.reasonField}>
-        Current administrator password
+        Текущий пароль владельца
         <input
           type="password"
           value={password}
@@ -51,13 +51,14 @@ const UserManagementPasswordConfirm = ({
       <div className={styles.actions}>
         <button
           type="button"
+          className={styles.dangerButton}
           disabled={isBusy || password.length < 8 || password.length > 100}
           onClick={() => void handleConfirm()}
         >
           {confirmLabel}
         </button>
-        <button type="button" disabled={isBusy} onClick={onCancel}>
-          Cancel
+        <button type="button" className={styles.textButton} disabled={isBusy} onClick={onCancel}>
+          Отмена
         </button>
       </div>
       {error && <p className={styles.error}>{error}</p>}

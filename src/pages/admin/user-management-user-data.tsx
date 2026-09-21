@@ -6,18 +6,18 @@ type UserManagementUserDataProps = {
 };
 
 const formatLastActivity = (value: string | null) => {
-  return value ? new Date(value).toLocaleString() : 'No activity yet';
+  return value ? new Date(value).toLocaleString('ru-RU') : 'Пока нет активности';
 };
 
 const UserManagementUserData = ({ user }: UserManagementUserDataProps) => (
   <div className={styles.userData}>
-    <strong>{user.nickname ?? 'No nickname'}</strong>
-    <span>Email: {user.email}</span>
-    <span>Name: {user.name ?? '—'}</span>
-    <span>Age: {user.age ?? '—'}</span>
-    <span>Status: {user.is_blocked ? 'Blocked' : 'Active'}</span>
-    <span>Last activity: {formatLastActivity(user.last_activity_at)}</span>
-    {user.blocked_reason && <span>Block reason: {user.blocked_reason}</span>}
+    <strong>{user.nickname ?? 'Без псевдонима'}</strong>
+    <span>Почта: {user.email}</span>
+    <span>Имя: {user.name ?? '—'}</span>
+    <span>Возраст: {user.age ?? '—'}</span>
+    <span>Статус: {user.is_blocked ? 'Заблокирован' : 'Активен'}</span>
+    <span>Последняя активность: {formatLastActivity(user.last_activity_at)}</span>
+    {user.blocked_reason && <span>Причина блокировки: {user.blocked_reason}</span>}
   </div>
 );
 

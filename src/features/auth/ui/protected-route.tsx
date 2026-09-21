@@ -8,7 +8,7 @@ import { useAuth } from '../model/use-auth';
 const SESSION_HEARTBEAT_MS = 60_000;
 
 const ProtectedRoute = () => {
-  const { isAuth, isInitializing, clearSession } = useAuth();
+  const { isAuth, isInitializing, isEndingSession, clearSession } = useAuth();
   const location = useLocation();
   const validationId = useRef(0);
   const [validatedLocationKey, setValidatedLocationKey] = useState<string | null>(null);
@@ -67,7 +67,13 @@ const ProtectedRoute = () => {
 
   if (isInitializing) return <p>Загружаем…</p>;
   if (!isAuth) {
-    return <Navigate to="/auth/login" state={{ from: location }} replace />;
+    return (
+      <Navigate
+        to={isEndingSession ? '/' : '/auth/login'}
+        state={isEndingSession ? null : { from: location, fromProtectedRoute: true }}
+        replace
+      />
+    );
   }
 
   if (validatedLocationKey !== location.key) {

@@ -63,21 +63,16 @@ export const revokeAllAdminUserSessionsRequest = async (id: number): Promise<voi
   });
 };
 
-export const blockAdminUserRequest = async (
-  id: number,
-  blockedReason: string,
-  password: string,
-): Promise<void> => {
+export const blockAdminUserRequest = async (id: number, blockedReason: string): Promise<void> => {
   await apiRequest(`/admin/users/block/${id}`, {
     method: 'PATCH',
-    body: JSON.stringify({ blocked_reason: blockedReason.trim(), password }),
+    body: JSON.stringify({ blocked_reason: blockedReason.trim() }),
   });
 };
 
-export const unblockAdminUserRequest = async (id: number, password: string): Promise<void> => {
+export const unblockAdminUserRequest = async (id: number): Promise<void> => {
   await apiRequest(`/admin/users/unblock/${id}`, {
     method: 'PATCH',
-    body: JSON.stringify({ password }),
   });
 };
 

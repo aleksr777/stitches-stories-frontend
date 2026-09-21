@@ -1,42 +1,59 @@
 import { useState, type FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
+import type { AdminLoginChallenge } from '../features/auth/api/auth-api';
+import { getAuthReturnTo } from '../features/auth/model/auth-return-location';
 import { useAuth } from '../features/auth/model/use-auth';
-import { useVerificationRequestState } from '../shared/model/verification-request';
 import { getAttemptsRemaining } from '../shared/api/api-client';
+import { useVerificationRequestState } from '../shared/model/verification-request';
 import { useStore } from './context';
 import { Acceptance, DocumentButton } from './legal';
-import { documentRef } from './types';
 import Modal from './modal';
+import { documentRef } from './types';
+
 export type AuthMode = 'login' | 'registration' | 'password-reset';
+
 const titles: Record<AuthMode, string> = {
   login: 'Рады видеть вас снова',
   registration: 'Давайте знакомиться',
   'password-reset': 'Восстановление пароля',
 };
+
 const AuthDialog = ({ mode: initialMode, close }: { mode: AuthMode; close: () => void }) => {
   const auth = useAuth();
   const { documents } = useStore();
   const navigate = useNavigate();
+  const location = useLocation();
   const verification = useVerificationRequestState();
   const [mode, setMode] = useState(initialMode);
   const [step, setStep] = useState(false);
   const [email, setEmail] = useState('');
+  const [adminChallenge, setAdminChallenge] = useState<AdminLoginChallenge | null>(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [visible, setVisible] = useState(false);
   const refs = documents
-    .filter((d) => ['pd-account', 'account-terms'].includes(d.id))
+    .filter((document) => ['pd-account', 'account-terms'].includes(document.id))
     .map(documentRef);
+  const isAdminConfirmation = mode === 'login' && step && adminChallenge !== null;
+  const returnTo = getAuthReturnTo(location.state);
+
   const changeMode = (value: AuthMode) => {
     setMode(value);
     setStep(false);
+    setAdminChallenge(null);
     setError('');
     verification.reset();
   };
-  const submit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+
+  const returnAfterAuthentication = () => {
+    navigate(returnTo, { replace: true });
+  };
+
+  const submit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     if (busy) return;
-    const data = new FormData(e.currentTarget);
+
+    const data = new FormData(event.currentTarget);
     const address = String(data.get('email') ?? email)
       .trim()
       .toLowerCase();
@@ -50,10 +67,11 @@ const AuthDialog = ({ mode: initialMode, close }: { mode: AuthMode; close: () =>
       setError('Ознакомьтесь с документами и подтвердите каждый отдельно.');
       return;
     }
+
     setBusy(true);
     setError('');
     try {
-      if (mode === 'login') {
+      if (mode === 'login' && !step) {
         const outcome = await auth.login(address, password);
         if (outcome.status === 'blocked') {
           setError(
@@ -61,7 +79,18 @@ const AuthDialog = ({ mode: initialMode, close }: { mode: AuthMode; close: () =>
           );
           return;
         }
-      } else if (!step) {
+        if (outcome.status === 'admin-confirmation') {
+          setEmail(address);
+          setAdminChallenge(outcome.challenge);
+          verification.applyResult(outcome.challenge);
+          setStep(true);
+          return;
+        }
+        returnAfterAuthentication();
+        return;
+      }
+
+      if (!step) {
         const result =
           mode === 'registration'
             ? await auth.requestRegistration(address, password, {
@@ -73,30 +102,46 @@ const AuthDialog = ({ mode: initialMode, close }: { mode: AuthMode; close: () =>
         setEmail(address);
         setStep(true);
         return;
-      } else if (mode === 'registration') await auth.confirmRegistration(code, email);
-      else await auth.confirmPasswordReset(code, password, email);
-      close();
-      navigate(mode === 'registration' ? '/catalog' : '/users/me', { replace: true });
+      }
+
+      if (isAdminConfirmation) {
+        await auth.confirmAdminLogin(adminChallenge.challenge_id, code);
+      } else if (mode === 'registration') {
+        await auth.confirmRegistration(code, email);
+      } else {
+        await auth.confirmPasswordReset(code, password, email);
+      }
+      returnAfterAuthentication();
     } catch (err) {
       verification.applyRetryError(err);
       verification.applyAttemptError(err);
       setError(
         err instanceof Error ? err.message : 'Не удалось выполнить запрос. Попробуйте ещё раз.',
       );
-      if (getAttemptsRemaining(err) === 0) setStep(false);
+      if (getAttemptsRemaining(err) === 0) {
+        setStep(false);
+        setAdminChallenge(null);
+      }
     } finally {
       setBusy(false);
     }
   };
+
   const resend = async () => {
     setBusy(true);
     setError('');
     try {
-      verification.applyResult(
-        mode === 'registration'
-          ? await auth.resendRegistration(email)
-          : await auth.requestPasswordReset(email),
-      );
+      if (isAdminConfirmation) {
+        const result = await auth.resendAdminLogin(adminChallenge.challenge_id);
+        setAdminChallenge(result);
+        verification.applyResult(result);
+      } else {
+        const result =
+          mode === 'registration'
+            ? await auth.resendRegistration(email)
+            : await auth.requestPasswordReset(email);
+        verification.applyResult(result);
+      }
     } catch (err) {
       verification.applyRetryError(err);
       setError(err instanceof Error ? err.message : 'Не удалось отправить код.');
@@ -104,14 +149,39 @@ const AuthDialog = ({ mode: initialMode, close }: { mode: AuthMode; close: () =>
       setBusy(false);
     }
   };
+
+  const resetStep = () => {
+    setStep(false);
+    setAdminChallenge(null);
+    setError('');
+    verification.reset();
+  };
+
   return (
-    <Modal title={step ? 'Проверьте вашу почту' : titles[mode]} onClose={close}>
+    <Modal
+      title={
+        isAdminConfirmation
+          ? 'Подтвердите вход владельца'
+          : step
+            ? 'Проверьте вашу почту'
+            : titles[mode]
+      }
+      onClose={close}
+    >
       <p className="muted">
-        {step
-          ? 'Если адрес подходит для этой операции, мы отправили шестизначный код на ' + email + '.'
-          : 'Ваши любимые истории будут всегда под рукой.'}
+        {isAdminConfirmation
+          ? adminChallenge.message
+          : step
+            ? 'Если адрес подходит для этой операции, мы отправили шестизначный код на ' +
+              email +
+              '.'
+            : 'Ваши любимые истории будут всегда под рукой.'}
       </p>
-      <form onSubmit={(e) => void submit(e)} className="form" key={mode + String(step)}>
+      <form
+        onSubmit={(event) => void submit(event)}
+        className="form"
+        key={mode + String(step) + (adminChallenge?.challenge_id ?? '')}
+      >
         {!step && mode === 'registration' && (
           <label>
             Как вас зовут
@@ -144,7 +214,7 @@ const AuthDialog = ({ mode: initialMode, close }: { mode: AuthMode; close: () =>
             />
           </label>
         )}
-        {(mode === 'login' ||
+        {((mode === 'login' && !step) ||
           (mode === 'registration' && !step) ||
           (mode === 'password-reset' && step)) && (
           <label>
@@ -162,7 +232,7 @@ const AuthDialog = ({ mode: initialMode, close }: { mode: AuthMode; close: () =>
               <button
                 type="button"
                 aria-label={visible ? 'Скрыть пароль' : 'Показать пароль'}
-                onClick={() => setVisible((v) => !v)}
+                onClick={() => setVisible((value) => !value)}
               >
                 {visible ? 'Скрыть' : 'Показать'}
               </button>
@@ -218,7 +288,7 @@ const AuthDialog = ({ mode: initialMode, close }: { mode: AuthMode; close: () =>
             Отправить код повторно
             {verification.resendSeconds > 0 ? ' (' + verification.resendSeconds + ' с)' : ''}
           </button>
-          <button className="text-link" onClick={() => setStep(false)}>
+          <button className="text-link" onClick={resetStep}>
             Изменить данные
           </button>
         </div>
@@ -243,4 +313,5 @@ const AuthDialog = ({ mode: initialMode, close }: { mode: AuthMode; close: () =>
     </Modal>
   );
 };
+
 export default AuthDialog;

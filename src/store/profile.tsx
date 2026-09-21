@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../features/auth/model/use-auth';
 import { getCurrentUserRequest, type CurrentUser } from '../features/users/api/users-api';
 import { apiRequest } from '../shared/api/api-client';
@@ -16,7 +16,6 @@ type ConsentEvent = {
 };
 const Profile = () => {
   const { logout, clearSession } = useAuth();
-  const navigate = useNavigate();
   const [user, setUser] = useState<CurrentUser | null>(null);
   const [orders, setOrders] = useState<OrderRequest[]>([]);
   const [marketing, setMarketing] = useState(false);
@@ -24,6 +23,7 @@ const Profile = () => {
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [dialog, setDialog] = useState('');
+  const [currentPassword, setCurrentPassword] = useState('');
   const [revision, setRevision] = useState(0);
   useEffect(() => {
     let active = true;
@@ -57,17 +57,16 @@ const Profile = () => {
       active = false;
     };
   }, [revision]);
-  const withdraw = async (purpose: string) => {
+  const withdraw = async (purpose: string, password?: string) => {
     setBusy(true);
     setError('');
     try {
       const result = await apiRequest<{ accountClosed: boolean }>('/shop/me/consents/withdraw', {
         method: 'POST',
-        body: JSON.stringify({ purpose }),
+        body: JSON.stringify({ purpose, ...(password ? { password } : {}) }),
       });
       if (result.accountClosed) {
         clearSession();
-        navigate('/');
       } else {
         setRevision((v) => v + 1);
         setDialog('');
@@ -108,7 +107,6 @@ const Profile = () => {
             <button
               className="text-link"
               onClick={() => {
-                navigate('/', { replace: true });
                 void logout().catch(() => undefined);
               }}
             >
@@ -211,18 +209,40 @@ const Profile = () => {
         />
       )}
       {dialog === 'account' && (
-        <Modal title="Закрыть личный кабинет?" onClose={() => setDialog('')}>
+        <Modal
+          title="Закрыть личный кабинет?"
+          onClose={() => {
+            setCurrentPassword('');
+            setDialog('');
+          }}
+        >
           <p>
             Отзыв согласия закроет кабинет, удалит профиль и избранное, завершит сеансы. Заявки и
             записи, для хранения которых существует отдельное основание, рассматриваются отдельно.
             Независимую подписку на письма можно отменить выше.
           </p>
           {error && <p role="alert">{error}</p>}
+          <label>
+            Текущий пароль
+            <input
+              type="password"
+              autoComplete="current-password"
+              minLength={8}
+              maxLength={100}
+              value={currentPassword}
+              onChange={(event) => setCurrentPassword(event.target.value)}
+              required
+            />
+          </label>
           <div className="actions">
             <ModalDismissButton className="button secondary" disabled={busy}>
               Оставить кабинет
             </ModalDismissButton>
-            <button className="button" disabled={busy} onClick={() => void withdraw('account')}>
+            <button
+              className="button"
+              disabled={busy || currentPassword.length < 8}
+              onClick={() => void withdraw('account', currentPassword)}
+            >
               Отозвать и закрыть
             </button>
           </div>

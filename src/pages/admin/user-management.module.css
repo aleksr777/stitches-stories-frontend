@@ -1,140 +1,212 @@
 .wrapper {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 1.25rem;
   width: 100%;
-  max-width: 760px;
+  max-width: 860px;
 }
 
-.wrapper h2,
-.wrapper p {
+.wrapper p,
+.title {
   margin: 0;
 }
 
 .title {
-  margin: 0;
-  padding: 0;
-  text-align: center;
-  font-size: 25px;
+  font-family: Cormorant, Georgia, serif;
+  font-size: 3.25rem;
+  line-height: 1.08;
 }
 
 .searchForm {
   display: flex;
-  gap: 8px;
+  gap: 0.7rem;
+  padding: 1rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fffdfa;
 }
 
 .searchForm input,
 .reasonField input {
-  box-sizing: border-box;
-  padding: 10px;
-  border: 1px solid #8ea6ff;
-  font-size: 16px;
+  width: 100%;
+  min-height: 46px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: #fffdfa;
+  color: inherit;
+  padding: 0.7rem 0.85rem;
 }
 
 .searchForm input {
   flex: 1;
 }
 
-.searchForm button,
-.actionSection button,
-.actions button,
-.pagination button {
-  padding: 10px;
-  border: none;
-  background-color: #8ea6ff;
-  cursor: pointer;
-  font-size: 16px;
+.primaryButton,
+.secondaryButton,
+.dangerButton,
+.pagination button,
+.textButton {
+  min-height: 42px;
+  border-radius: 5px;
+  padding: 0.62rem 1rem;
+  font-size: 0.84rem;
 }
 
-.searchForm button:disabled,
-.actionSection button:disabled,
-.actions button:disabled,
-.pagination button:disabled {
-  cursor: default;
-  opacity: 0.6;
+.primaryButton {
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+
+.secondaryButton,
+.pagination button {
+  border: 1px solid var(--accent);
+  background: transparent;
+  color: var(--accent);
+}
+
+.dangerButton {
+  border: 1px solid #8c4d50;
+  background: #8c4d50;
+  color: #fff;
+}
+
+.textButton {
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 4px;
 }
 
 .userList {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  display: grid;
+  gap: 0.9rem;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.userCard {
+.userCard,
+.confirmPanel {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 16px;
-  border: 1px solid #d0d0d0;
+  gap: 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fffdfa;
+  padding: 1.25rem;
 }
 
 .userData {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+  display: grid;
+  gap: 0.35rem;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.userData strong {
+  color: #382f2d;
+  font-size: 1.08rem;
 }
 
 .actionLink,
 .actionButton {
   width: fit-content;
-  text-decoration: none;
-  font-size: 16px;
+  color: var(--accent);
+  font-size: 0.88rem;
 }
 
 .actionLink {
-  color: #00e;
+  text-decoration: underline;
+  text-underline-offset: 4px;
 }
 
 .actionButton {
-  padding: 10px;
-  background-color: #8ea6ff;
-  color: #000;
+  min-height: 42px;
+  border: 1px solid var(--accent);
+  border-radius: 5px;
+  padding: 0.62rem 1rem;
 }
 
-.actionLink:hover,
-.actionButton:hover {
-  opacity: 0.7;
-}
-
-.actionSection,
-.confirmPanel {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+.actionButton:hover,
+.primaryButton:hover,
+.dangerButton:hover {
+  filter: brightness(0.95);
 }
 
 .actionSection {
+  display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
-}
-
-.confirmPanel {
-  width: 100%;
-  padding: 16px;
-  border: 1px solid #d0d0d0;
+  gap: 0.75rem;
 }
 
 .reasonField {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+  display: grid;
+  gap: 0.45rem;
   width: 100%;
-  max-width: 420px;
+  max-width: 32rem;
+  font-size: 0.88rem;
 }
 
 .actions,
 .pagination {
   display: flex;
-  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.7rem;
 }
 
 .pagination {
-  align-items: center;
   justify-content: space-between;
+  padding-top: 0.25rem;
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+
+.notice,
+.empty,
+.message {
+  padding: 1rem 1.1rem;
+  border-radius: 5px;
+  background: #f4e7d7;
+}
+
+.empty {
+  color: var(--muted);
+}
+
+.message {
+  color: #4f413d;
 }
 
 .error {
-  color: #b00000;
+  color: #8c4d50;
+}
+
+@media (width <= 540px) {
+  .title {
+    font-size: 2.45rem;
+  }
+
+  .searchForm {
+    flex-direction: column;
+  }
+
+  .searchForm button,
+  .primaryButton,
+  .secondaryButton,
+  .dangerButton {
+    width: 100%;
+  }
+
+  .pagination {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .pagination button {
+    width: 100%;
+  }
 }

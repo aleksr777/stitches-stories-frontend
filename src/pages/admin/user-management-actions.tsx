@@ -7,8 +7,8 @@ import styles from './user-management.module.css';
 type UserManagementActionsProps = {
   user: AdminUser;
   isBusy: boolean;
-  onBlock: (reason: string, password: string) => Promise<void>;
-  onUnblock: (password: string) => Promise<void>;
+  onBlock: (reason: string) => Promise<void>;
+  onUnblock: () => Promise<void>;
   onDelete: (password: string) => Promise<void>;
 };
 
@@ -20,21 +20,17 @@ const UserManagementActions = ({
   onDelete,
 }: UserManagementActionsProps) => {
   const [isBlockConfirming, setIsBlockConfirming] = useState(false);
-  const [isUnblockConfirming, setIsUnblockConfirming] = useState(false);
   const [isDeleteConfirming, setIsDeleteConfirming] = useState(false);
 
   if (user.role === 'admin') {
-    return <p>Administrator account cannot be blocked or deleted.</p>;
+    return (
+      <p className={styles.notice}>Учётную запись владельца нельзя заблокировать или удалить.</p>
+    );
   }
 
-  const handleConfirmBlock = async (reason: string, password: string) => {
-    await onBlock(reason, password);
+  const handleConfirmBlock = async (reason: string) => {
+    await onBlock(reason);
     setIsBlockConfirming(false);
-  };
-
-  const handleConfirmUnblock = async (password: string) => {
-    await onUnblock(password);
-    setIsUnblockConfirming(false);
   };
 
   const handleConfirmDelete = async (password: string) => {
@@ -45,24 +41,14 @@ const UserManagementActions = ({
   return (
     <div className={styles.actionSection}>
       {user.is_blocked ? (
-        isUnblockConfirming ? (
-          <UserManagementPasswordConfirm
-            isBusy={isBusy}
-            onConfirm={handleConfirmUnblock}
-            onCancel={() => setIsUnblockConfirming(false)}
-            prompt="Unblock this user?"
-            confirmLabel="Confirm unblock"
-            failureMessage="Failed to unblock user"
-          />
-        ) : (
-          <button
-            type="button"
-            disabled={isBusy || isDeleteConfirming}
-            onClick={() => setIsUnblockConfirming(true)}
-          >
-            Unblock user
-          </button>
-        )
+        <button
+          type="button"
+          className={styles.secondaryButton}
+          disabled={isBusy || isDeleteConfirming}
+          onClick={() => void onUnblock().catch(() => undefined)}
+        >
+          Разблокировать
+        </button>
       ) : isBlockConfirming ? (
         <UserManagementBlockConfirm
           isBusy={isBusy}
@@ -72,10 +58,11 @@ const UserManagementActions = ({
       ) : (
         <button
           type="button"
+          className={styles.secondaryButton}
           disabled={isBusy || isDeleteConfirming}
           onClick={() => setIsBlockConfirming(true)}
         >
-          Block user
+          Заблокировать
         </button>
       )}
 
@@ -84,14 +71,18 @@ const UserManagementActions = ({
           isBusy={isBusy}
           onConfirm={handleConfirmDelete}
           onCancel={() => setIsDeleteConfirming(false)}
+          prompt="Удалить учётную запись без возможности восстановления?"
+          confirmLabel="Удалить учётную запись"
+          failureMessage="Не удалось удалить учётную запись"
         />
       ) : (
         <button
           type="button"
-          disabled={isBusy || isBlockConfirming || isUnblockConfirming}
+          className={styles.dangerButton}
+          disabled={isBusy || isBlockConfirming}
           onClick={() => setIsDeleteConfirming(true)}
         >
-          Delete user
+          Удалить
         </button>
       )}
     </div>

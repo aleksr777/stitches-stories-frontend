@@ -13,7 +13,7 @@ const UserManagementUser = ({ user }: UserManagementUserProps) => {
       <UserManagementUserData user={user} />
 
       <Link className={styles.actionButton} to={`/admin/users/${user.id}`}>
-        Manage user
+        Открыть карточку
       </Link>
     </li>
   );

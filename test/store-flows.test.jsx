@@ -64,6 +64,34 @@ const start = (path, { failOrder = false } = {}) => {
         authenticated = true;
         return response(tokens);
       }
+      if (endpoint === '/auth/login') {
+        if (body.email === 'owner@example.test') {
+          return response({
+            admin_confirmation_required: true,
+            challenge_id: 'a'.repeat(64),
+            message: 'Код для входа отправлен на вашу почту.',
+            expires_in: 300,
+            retry_after: 60,
+            max_attempts: 5,
+          });
+        }
+        authenticated = true;
+        return response(tokens);
+      }
+      if (endpoint === '/auth/login/admin/confirm') {
+        authenticated = true;
+        return response(tokens);
+      }
+      if (endpoint === '/auth/login/admin/resend') {
+        return response({
+          admin_confirmation_required: true,
+          challenge_id: 'b'.repeat(64),
+          message: 'Код для входа отправлен на вашу почту.',
+          expires_in: 300,
+          retry_after: 60,
+          max_attempts: 5,
+        });
+      }
       if (endpoint === '/auth/session')
         return new Response(null, { status: authenticated ? 204 : 401 });
       if (endpoint === '/users/me')
@@ -131,7 +159,7 @@ test('product, cart and checkout keep guest data and retry the same request afte
   expect(JSON.parse(localStorage.getItem('ss-cart-v1'))).toEqual([]);
 });
 
-test('registration sends two distinct document references and opens the catalog', async () => {
+test('registration sends two distinct document references and returns to the safe public route', async () => {
   const { calls, router } = start('/auth/registration');
   const dialog = await screen.findByRole('dialog');
   await waitFor(() =>
@@ -154,7 +182,7 @@ test('registration sends two distinct document references and opens the catalog'
   fireEvent.click(within(dialog).getByRole('button', { name: 'Получить код регистрации' }));
   fireEvent.change(await screen.findByLabelText('Код из письма'), { target: { value: '123456' } });
   fireEvent.click(screen.getByRole('button', { name: 'Подтвердить код' }));
-  await waitFor(() => expect(router.state.location.pathname).toBe('/catalog'));
+  await waitFor(() => expect(router.state.location.pathname).toBe('/'));
   expect(screen.getByRole('link', { name: 'Мой профиль' }).className).toBe('avatar');
   const request = calls.find((c) => c.endpoint === '/auth/registration/request').body;
   expect(request.name).toBe('Надежда');
@@ -163,6 +191,42 @@ test('registration sends two distinct document references and opens the catalog'
     true,
   );
   expect(request.documents.some((d) => d.id === 'ads-email')).toBe(false);
+});
+
+test('login modal returns a visitor to the page from which it was opened', async () => {
+  const { router } = start('/products/quiet-garden');
+  fireEvent.click(await screen.findByRole('button', { name: 'Войти в аккаунт' }));
+  const dialog = await screen.findByRole('dialog');
+  fireEvent.change(within(dialog).getByLabelText('Электронная почта'), {
+    target: { value: 'shopper@example.test' },
+  });
+  fireEvent.change(within(dialog).getByLabelText('Пароль'), {
+    target: { value: 'a-safe-test-password' },
+  });
+  fireEvent.click(within(dialog).getByRole('button', { name: 'Войти' }));
+
+  await waitFor(() => expect(router.state.location.pathname).toBe('/products/quiet-garden'));
+  expect(screen.getByRole('link', { name: 'Мой профиль' }).className).toBe('avatar');
+});
+
+test('administrator login creates a session only after the email code is confirmed', async () => {
+  const { calls, router } = start('/auth/login');
+  const dialog = await screen.findByRole('dialog');
+  fireEvent.change(within(dialog).getByLabelText('Электронная почта'), {
+    target: { value: 'owner@example.test' },
+  });
+  fireEvent.change(within(dialog).getByLabelText('Пароль'), {
+    target: { value: 'a-safe-owner-password' },
+  });
+  fireEvent.click(within(dialog).getByRole('button', { name: 'Войти' }));
+
+  await screen.findByRole('heading', { name: 'Подтвердите вход владельца' });
+  expect(calls.filter((call) => call.endpoint === '/auth/login/admin/confirm')).toHaveLength(0);
+  fireEvent.change(screen.getByLabelText('Код из письма'), { target: { value: '123456' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Подтвердить код' }));
+
+  await waitFor(() => expect(router.state.location.pathname).toBe('/'));
+  expect(calls.filter((call) => call.endpoint === '/auth/login/admin/confirm')).toHaveLength(1);
 });
 
 test('opening and closing a legal document preserves registration fields and unchecked consents', async () => {

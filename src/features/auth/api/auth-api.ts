@@ -1,5 +1,5 @@
 import { apiRequest } from '../../../shared/api/api-client';
-import { clearAuthTokens, setAuthTokens, type AuthTokens } from '../../../shared/api/tokens';
+import { setAuthTokens, type AuthTokens } from '../../../shared/api/tokens';
 import type {
   LoginDto,
   MessageResponse,
@@ -20,10 +20,19 @@ export type BlockedAccountInfo = {
   blocked_reason: string | null;
   contact_email: string;
 };
-type LoginResult = AuthTokens | BlockedAccountInfo;
+export type AdminLoginChallenge = VerificationRequestResult & {
+  admin_confirmation_required: true;
+  challenge_id: string;
+  expires_in: number;
+};
+type LoginResult = AuthTokens | BlockedAccountInfo | AdminLoginChallenge;
 
 export const isBlockedAccountInfo = (value: LoginResult): value is BlockedAccountInfo => {
   return 'blocked' in value && value.blocked === true;
+};
+
+export const isAdminLoginChallenge = (value: LoginResult): value is AdminLoginChallenge => {
+  return 'admin_confirmation_required' in value && value.admin_confirmation_required === true;
 };
 
 export const loginRequest = async (dto: LoginDto): Promise<LoginResult> => {
@@ -33,10 +42,30 @@ export const loginRequest = async (dto: LoginDto): Promise<LoginResult> => {
     body: JSON.stringify(dto),
   });
 
-  if (!isBlockedAccountInfo(result)) {
+  if (!isBlockedAccountInfo(result) && !isAdminLoginChallenge(result)) {
     setAuthTokens(result);
   }
   return result;
+};
+
+export const confirmAdminLoginRequest = async (
+  challengeId: string,
+  code: string,
+): Promise<void> => {
+  const tokens = await apiRequest<AuthTokens>('/auth/login/admin/confirm', {
+    method: 'POST',
+    auth: 'none',
+    body: JSON.stringify({ challenge_id: challengeId, code }),
+  });
+  setAuthTokens(tokens);
+};
+
+export const resendAdminLoginRequest = (challengeId: string): Promise<AdminLoginChallenge> => {
+  return apiRequest<AdminLoginChallenge>('/auth/login/admin/resend', {
+    method: 'POST',
+    auth: 'none',
+    body: JSON.stringify({ challenge_id: challengeId }),
+  });
 };
 
 export const validateSessionRequest = async (): Promise<void> => {
@@ -101,13 +130,9 @@ export const passwordResetConfirmRequest = async (
 };
 
 export const logoutRequest = async (): Promise<void> => {
-  try {
-    await apiRequest<unknown>('/auth/logout', {
-      method: 'POST',
-      auth: 'access',
-      retry: false,
-    });
-  } finally {
-    clearAuthTokens();
-  }
+  await apiRequest<unknown>('/auth/logout', {
+    method: 'POST',
+    auth: 'access',
+    retry: false,
+  });
 };
