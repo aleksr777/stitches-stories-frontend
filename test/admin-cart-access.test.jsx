@@ -58,11 +58,15 @@ const createStore = () => ({
   showDocument: vi.fn(),
 });
 
-const renderWithStore = (content, store = createStore()) =>
+const renderWithStore = (
+  content,
+  store = createStore(),
+  initialEntry = '/products/owner-test',
+) =>
   render(
     <AuthContext.Provider value={auth}>
       <StoreContext.Provider value={store}>
-        <MemoryRouter initialEntries={['/products/owner-test']}>{content}</MemoryRouter>
+        <MemoryRouter initialEntries={[initialEntry]}>{content}</MemoryRouter>
       </StoreContext.Provider>
     </AuthContext.Provider>,
   );
@@ -103,6 +107,8 @@ test('owner cannot open the favorites route directly', () => {
       </Route>
       <Route path="/forbidden" element={<h1>Доступ ограничен</h1>} />
     </Routes>,
+    createStore(),
+    '/favorites',
   );
   expect(screen.getByRole('heading', { name: 'Доступ ограничен' })).toBeTruthy();
   expect(screen.queryByRole('heading', { name: 'Избранное' })).toBeNull();
