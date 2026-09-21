@@ -58,11 +58,7 @@ const createStore = () => ({
   showDocument: vi.fn(),
 });
 
-const renderWithStore = (
-  content,
-  store = createStore(),
-  initialEntry = '/products/owner-test',
-) =>
+const renderWithStore = (content, store = createStore(), initialEntry = '/products/owner-test') =>
   render(
     <AuthContext.Provider value={auth}>
       <StoreContext.Provider value={store}>
