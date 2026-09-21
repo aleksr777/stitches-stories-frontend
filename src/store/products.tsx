@@ -69,7 +69,7 @@ export const ProductPage = () => {
           >
             {product.stock ? 'Добавить в корзину' : 'Сейчас недоступно'}
           </button>
-          {added && (
+          {added && !isOwner && !roleIsLoading && (
             <p role="status">
               Добавлено.{' '}
               <Link className="text-link" to="/cart">

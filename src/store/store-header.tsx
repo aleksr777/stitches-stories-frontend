@@ -15,6 +15,7 @@ const StoreHeader = ({ menu, setMenu, openAuth }: Props) => {
   const { cart } = useStore();
   const location = useLocation();
   const favoriteUnavailable = isAuth && role !== 'user';
+  const cartUnavailable = isAuth && role !== 'user';
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
@@ -56,14 +57,20 @@ const StoreHeader = ({ menu, setMenu, openAuth }: Props) => {
               <Icon name="heart" />
             </Link>
           )}
-          <Link
-            className="icon-button bag"
-            to="/cart"
-            aria-label={'Корзина, изделий: ' + cartCount}
-          >
-            <Icon name="bag" />
-            {cart.length > 0 && <span>{cartCount}</span>}
-          </Link>
+          {cartUnavailable ? (
+            <button type="button" className="icon-button bag" disabled aria-label="Корзина">
+              <Icon name="bag" />
+            </button>
+          ) : (
+            <Link
+              className="icon-button bag"
+              to="/cart"
+              aria-label={'Корзина, изделий: ' + cartCount}
+            >
+              <Icon name="bag" />
+              {cart.length > 0 && <span>{cartCount}</span>}
+            </Link>
+          )}
           {isAuth ? (
             <Link className="avatar" to="/users/me" aria-label="Мой профиль">
               Я

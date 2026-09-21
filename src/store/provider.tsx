@@ -45,6 +45,9 @@ const StoreProvider = ({ children }: PropsWithChildren) => {
 
   useEffect(() => saveCart(cart), [cart]);
   useEffect(() => {
+    if (role === 'admin') setCart([]);
+  }, [role]);
+  useEffect(() => {
     let active = true;
     setFavorites([]);
     if (isAuth && role === 'user')
@@ -58,16 +61,20 @@ const StoreProvider = ({ children }: PropsWithChildren) => {
     };
   }, [isAuth, role]);
 
-  const setQuantity = useCallback((id: string, quantity: number) => {
-    setCart((items) => {
-      const filtered = items.filter((item) => item.productId !== id);
-      if (quantity <= 0) return filtered;
-      return [
-        ...filtered,
-        { productId: id, quantity: Math.min(10, Math.max(1, Math.floor(quantity))) },
-      ];
-    });
-  }, []);
+  const setQuantity = useCallback(
+    (id: string, quantity: number) => {
+      if (role === 'admin' || (isAuth && role === null)) return;
+      setCart((items) => {
+        const filtered = items.filter((item) => item.productId !== id);
+        if (quantity <= 0) return filtered;
+        return [
+          ...filtered,
+          { productId: id, quantity: Math.min(10, Math.max(1, Math.floor(quantity))) },
+        ];
+      });
+    },
+    [isAuth, role],
+  );
 
   const add = useCallback(
     (id: string) => {

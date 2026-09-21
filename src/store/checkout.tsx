@@ -29,6 +29,24 @@ const Checkout = () => {
   const isOwner = role === 'admin';
   const roleIsLoading = isAuth && role === null;
 
+  if (roleIsLoading)
+    return (
+      <p className="page" role="status">
+        Проверяем доступ к корзине…
+      </p>
+    );
+  if (isOwner)
+    return (
+      <section className="page empty">
+        <p className="eyebrow">Мастерская</p>
+        <h1>Корзина недоступна</h1>
+        <p>Владелец магазина не может добавлять изделия в корзину и оформлять заявки на покупку.</p>
+        <Link className="button" to="/admin/shop">
+          Перейти к управлению магазином
+        </Link>
+      </section>
+    );
+
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (busy || !offer || unavailable || isOwner || roleIsLoading) return;
