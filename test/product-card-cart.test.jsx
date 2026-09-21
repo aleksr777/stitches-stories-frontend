@@ -43,8 +43,7 @@ const auth = {
 
 const Harness = () => {
   const [cart, setCart] = useState([]);
-  const setQuantity = (id, quantity) =>
-    setCart(quantity > 0 ? [{ productId: id, quantity }] : []);
+  const setQuantity = (id, quantity) => setCart(quantity > 0 ? [{ productId: id, quantity }] : []);
   const store = {
     products: [product],
     documents: [],
