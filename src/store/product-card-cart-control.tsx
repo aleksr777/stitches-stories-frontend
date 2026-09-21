@@ -8,13 +8,7 @@ type Props = {
   setQuantity: (id: string, quantity: number) => void;
 };
 
-const ProductCardCartControl = ({
-  product,
-  quantity,
-  disabled,
-  add,
-  setQuantity,
-}: Props) => {
+const ProductCardCartControl = ({ product, quantity, disabled, add, setQuantity }: Props) => {
   const maxQuantity = Math.min(product.stock, 10);
   const unavailable = product.stock < 1;
 
