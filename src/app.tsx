@@ -1,6 +1,7 @@
 import { Routes, Route, Link } from 'react-router-dom';
 import ProtectedRoute from './features/auth/ui/protected-route';
 import AdminRoute from './features/auth/ui/admin-route';
+import CustomerRoute from './features/auth/ui/customer-route';
 import StoreProvider from './store/provider';
 import Layout from './store/layout';
 import Home, { About, Delivery } from './store/home';
@@ -43,7 +44,9 @@ const App = () => (
         />
         <Route element={<ProtectedRoute />}>
           <Route path="users/me" element={<Profile />} />
-          <Route path="favorites" element={<Catalog favoritesOnly />} />
+          <Route element={<CustomerRoute />}>
+            <Route path="favorites" element={<Catalog favoritesOnly />} />
+          </Route>
           <Route
             path="users/me/sessions"
             element={

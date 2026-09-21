@@ -2,6 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { vi, expect, test } from 'vitest';
 import { AuthContext } from '../src/features/auth/model/auth-context';
+import CustomerRoute from '../src/features/auth/ui/customer-route';
 import Checkout from '../src/store/checkout';
 import { StoreContext } from '../src/store/context';
 import { ProductPage } from '../src/store/products';
@@ -66,10 +67,12 @@ const renderWithStore = (content, store = createStore()) =>
     </AuthContext.Provider>,
   );
 
-test('owner sees an inactive cart control in the header', () => {
+test('owner sees inactive cart and favorites controls in the header', () => {
   renderWithStore(<StoreHeader menu={false} setMenu={vi.fn()} openAuth={vi.fn()} />);
   expect(screen.getByRole('button', { name: 'Корзина' }).disabled).toBe(true);
   expect(screen.queryByRole('link', { name: /Корзина/ })).toBeNull();
+  expect(screen.getByRole('button', { name: 'Избранное' }).disabled).toBe(true);
+  expect(screen.queryByRole('link', { name: 'Избранное' })).toBeNull();
 });
 
 test('owner cannot add a product to the cart', () => {
@@ -90,4 +93,18 @@ test('owner cannot open checkout even with a pre-existing cart', () => {
   renderWithStore(<Checkout />);
   expect(screen.getByRole('heading', { name: 'Корзина недоступна' })).toBeTruthy();
   expect(screen.queryByRole('button', { name: 'Отправить заявку мастеру' })).toBeNull();
+});
+
+
+test('owner cannot open the favorites route directly', () => {
+  renderWithStore(
+    <Routes>
+      <Route path="/favorites" element={<CustomerRoute />}>
+        <Route index element={<h1>Избранное</h1>} />
+      </Route>
+      <Route path="/forbidden" element={<h1>Доступ ограничен</h1>} />
+    </Routes>,
+  );
+  expect(screen.getByRole('heading', { name: 'Доступ ограничен' })).toBeTruthy();
+  expect(screen.queryByRole('heading', { name: 'Избранное' })).toBeNull();
 });
