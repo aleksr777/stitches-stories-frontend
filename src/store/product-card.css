@@ -1,0 +1,132 @@
+.product-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  height: 100%;
+  padding: 0.75rem;
+  border: 1px solid #cdbeb3;
+  border-radius: 11px;
+  background: #fffaf6;
+  box-shadow: 0 8px 24px rgb(56 47 45 / 4%);
+}
+
+.product-card .product-visual {
+  margin-bottom: 0;
+}
+
+.product-card .product-photo,
+.product-card .photo-placeholder {
+  display: block;
+  border-radius: 7px;
+}
+
+.product-card-content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  padding: 0.9rem 0.15rem 0.1rem;
+}
+
+.product-card-content h3 {
+  margin: 0.3rem 0;
+}
+
+.product-card-price {
+  margin: 0.2rem 0 1rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.product-card-add,
+.product-card-quantity {
+  width: 100%;
+  min-height: 44px;
+  margin-top: auto;
+  border: 1px solid var(--accent);
+  border-radius: 5px;
+}
+
+.product-card-add {
+  padding: 0.65rem 1rem;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.78rem;
+}
+
+.product-card-add:hover:not(:disabled) {
+  background: #754051;
+}
+
+.product-card-quantity {
+  display: grid;
+  grid-template-columns: 44px 1fr 44px;
+  align-items: stretch;
+  overflow: hidden;
+  background: #fffcf8;
+  color: var(--accent);
+}
+
+.product-card-quantity button {
+  min-width: 44px;
+  min-height: 42px;
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  font-size: 1.15rem;
+}
+
+.product-card-quantity button:first-child {
+  border-right: 1px solid var(--line);
+}
+
+.product-card-quantity button:last-child {
+  border-left: 1px solid var(--line);
+}
+
+.product-card-quantity button:hover:not(:disabled) {
+  background: #f3e7e2;
+}
+
+.product-card-quantity output {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.product-card-content .error {
+  margin: 0.75rem 0 0;
+}
+
+@media (width <= 600px) {
+  .product-card {
+    padding: 0.55rem;
+    border-radius: 9px;
+  }
+
+  .product-card-content {
+    padding-top: 0.7rem;
+  }
+
+  .product-card-price {
+    margin-bottom: 0.75rem;
+    font-size: 0.8rem;
+  }
+
+  .product-card-add {
+    min-height: 42px;
+    padding-inline: 0.55rem;
+    font-size: 0.68rem;
+  }
+
+  .product-card-quantity {
+    grid-template-columns: 38px 1fr 38px;
+    min-height: 42px;
+  }
+
+  .product-card-quantity button {
+    min-width: 38px;
+  }
+}
