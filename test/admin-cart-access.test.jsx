@@ -95,7 +95,6 @@ test('owner cannot open checkout even with a pre-existing cart', () => {
   expect(screen.queryByRole('button', { name: 'Отправить заявку мастеру' })).toBeNull();
 });
 
-
 test('owner cannot open the favorites route directly', () => {
   renderWithStore(
     <Routes>

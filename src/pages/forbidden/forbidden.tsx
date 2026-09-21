@@ -1,7 +1,7 @@
-import styles from './forbidden.module.css';
+const ForbiddenPage = () => (
+  <section className="page">
+    <h1>Доступ ограничен</h1>
+  </section>
+);
 
-const Forbidden = () => {
-  return <h2 className={styles.title}>Access denied</h2>;
-};
-
-export default Forbidden;
+export default ForbiddenPage;

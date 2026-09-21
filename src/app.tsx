@@ -19,6 +19,7 @@ import UserManagement from './pages/admin/user-management';
 import UserManagementDetails from './pages/admin/user-management-details';
 import UserManagementSessions from './pages/admin/user-management-sessions';
 import BlockedAccount from './pages/blocked-account/blocked-account';
+import ForbiddenPage from './pages/forbidden/forbidden';
 const App = () => (
   <StoreProvider>
     <Routes>
@@ -34,14 +35,7 @@ const App = () => (
         <Route path="auth/:mode" element={<Home />} />
         <Route path="newsletter/:action" element={<NewsletterAction />} />
         <Route path="blocked" element={<BlockedAccount />} />
-        <Route
-          path="forbidden"
-          element={
-            <section className="page">
-              <h1>Доступ ограничен</h1>
-            </section>
-          }
-        />
+        <Route path="forbidden" element={<ForbiddenPage />} />
         <Route element={<ProtectedRoute />}>
           <Route path="users/me" element={<Profile />} />
           <Route element={<CustomerRoute />}>
