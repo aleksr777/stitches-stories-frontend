@@ -6,13 +6,7 @@ export type EditableProductImage =
   | { key: string; path: string; file?: never }
   | { key: string; path?: never; file: File };
 
-const ProductImagePreview = ({
-  image,
-  index,
-}: {
-  image: EditableProductImage;
-  index: number;
-}) => {
+const ProductImagePreview = ({ image, index }: { image: EditableProductImage; index: number }) => {
   const [url, setUrl] = useState('');
   const [error, setError] = useState(false);
   const [attempt, setAttempt] = useState(0);

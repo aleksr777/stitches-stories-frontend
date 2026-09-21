@@ -9,14 +9,7 @@ type Props = {
   withdraw: (password: string) => void;
 };
 
-const ProfileAccountDialog = ({
-  busy,
-  error,
-  password,
-  setPassword,
-  close,
-  withdraw,
-}: Props) => (
+const ProfileAccountDialog = ({ busy, error, password, setPassword, close, withdraw }: Props) => (
   <Modal title="Закрыть личный кабинет?" onClose={close}>
     <p>
       Отзыв согласия закроет кабинет, удалит профиль и избранное, завершит сеансы. Заявки и записи,

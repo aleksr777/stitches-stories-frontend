@@ -75,10 +75,7 @@ export const useAuthActions = ({ setAuthenticated, setUnauthenticated, endSessio
     },
     [setAuthenticated],
   );
-  const requestPasswordReset = useCallback(
-    (email: string) => passwordResetRequest({ email }),
-    [],
-  );
+  const requestPasswordReset = useCallback((email: string) => passwordResetRequest({ email }), []);
   const confirmPasswordReset = useCallback(
     async (code: string, newPassword: string, email: string) => {
       await passwordResetConfirmRequest({ code, email, new_password: newPassword });

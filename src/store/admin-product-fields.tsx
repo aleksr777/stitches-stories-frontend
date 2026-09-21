@@ -5,13 +5,7 @@ const AdminProductFields = ({ product }: { product: Product }) => (
     <div className="product-editor-details">
       <label>
         Название
-        <input
-          name="name"
-          defaultValue={product.name}
-          minLength={2}
-          maxLength={200}
-          required
-        />
+        <input name="name" defaultValue={product.name} minLength={2} maxLength={200} required />
       </label>
       <label>
         Категория

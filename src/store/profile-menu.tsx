@@ -1,13 +1,7 @@
 import { Link } from 'react-router-dom';
 import type { CurrentUser } from '../features/users/api/users-api';
 
-const ProfileMenu = ({
-  user,
-  logout,
-}: {
-  user: CurrentUser;
-  logout: () => Promise<void>;
-}) => (
+const ProfileMenu = ({ user, logout }: { user: CurrentUser; logout: () => Promise<void> }) => (
   <aside className="profile-menu">
     <span className="avatar large" aria-hidden="true">
       {(user.name ?? user.nickname ?? 'Я').slice(0, 1).toUpperCase()}

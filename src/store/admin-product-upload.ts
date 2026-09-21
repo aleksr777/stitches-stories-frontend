@@ -14,8 +14,7 @@ export const buildProductUpload = (
   const stock = Number(data.get('stock'));
   if (!Number.isInteger(priceRub) || priceRub < 1)
     throw new Error('Укажите цену изделия больше 0 ₽.');
-  if (!product.id && !images.length)
-    throw new Error('Добавьте хотя бы одну фотографию изделия.');
+  if (!product.id && !images.length) throw new Error('Добавьте хотя бы одну фотографию изделия.');
 
   const text = (field: string, fallback: string) =>
     String(data.get(field) ?? '').trim() || fallback;

@@ -2,13 +2,7 @@ import type { useAuthDialogState } from './auth-dialog-state';
 
 type DialogState = ReturnType<typeof useAuthDialogState>;
 
-const AuthDialogLinks = ({
-  state,
-  resend,
-}: {
-  state: DialogState;
-  resend: () => Promise<void>;
-}) =>
+const AuthDialogLinks = ({ state, resend }: { state: DialogState; resend: () => Promise<void> }) =>
   state.step ? (
     <div className="auth-links">
       <button

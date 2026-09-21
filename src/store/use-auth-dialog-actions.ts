@@ -35,8 +35,7 @@ export const useAuthDialogActions = (state: DialogState, returnTo: string) => {
         const outcome = await auth.login(address, password);
         if (outcome.status === 'blocked') {
           state.setError(
-            'Аккаунт заблокирован. ' +
-              (outcome.info.blocked_reason ?? 'Свяжитесь с мастерской.'),
+            'Аккаунт заблокирован. ' + (outcome.info.blocked_reason ?? 'Свяжитесь с мастерской.'),
           );
           return;
         }
