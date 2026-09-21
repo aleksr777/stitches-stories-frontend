@@ -61,7 +61,7 @@ const renderWithStore = (content, store = createStore()) =>
   render(
     <AuthContext.Provider value={auth}>
       <StoreContext.Provider value={store}>
-        <MemoryRouter initialEntries={['/']}>{content}</MemoryRouter>
+        <MemoryRouter initialEntries={['/products/owner-test']}>{content}</MemoryRouter>
       </StoreContext.Provider>
     </AuthContext.Provider>,
   );
@@ -76,7 +76,7 @@ test('owner cannot add a product to the cart', () => {
   const store = createStore();
   renderWithStore(
     <Routes>
-      <Route path="/" element={<ProductPage />} />
+      <Route path="/products/:slug" element={<ProductPage />} />
     </Routes>,
     store,
   );

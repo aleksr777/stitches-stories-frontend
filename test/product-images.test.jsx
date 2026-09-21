@@ -254,14 +254,13 @@ test('administrator does not use favorites or customer consent controls', async 
   expect(calls.some((call) => call.endpoint === '/legal/me/events')).toBe(false);
 });
 
-test('administrator cannot add an item to the cart or send a purchase request', async () => {
+test('administrator cannot open the cart or send a purchase request', async () => {
   localStorage.setItem('ss-cart-v1', JSON.stringify([{ productId: id, quantity: 1 }]));
   const { calls } = start('/cart');
-  const submit = await screen.findByRole('button', { name: 'Отправить заявку мастеру' });
-  expect(submit.disabled).toBe(true);
+  await screen.findByRole('heading', { name: 'Корзина недоступна' });
   expect(screen.queryByRole('checkbox', { name: /Принимаю условия/ })).toBeNull();
-  expect(screen.getByText(/Для владельца не требуются согласия покупателя/)).toBeTruthy();
-  fireEvent.click(submit);
+  expect(screen.queryByRole('button', { name: 'Отправить заявку мастеру' })).toBeNull();
+  await waitFor(() => expect(JSON.parse(localStorage.getItem('ss-cart-v1'))).toEqual([]));
   expect(calls.some((call) => call.endpoint === '/shop/requests')).toBe(false);
 });
 
