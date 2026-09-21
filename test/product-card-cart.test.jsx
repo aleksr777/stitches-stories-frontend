@@ -75,10 +75,16 @@ test('product card switches from add button to quantity controls', () => {
   fireEvent.click(screen.getByRole('button', { name: 'Добавить в корзину' }));
   expect(screen.getByLabelText('Количество в корзине: Тестовый брелок').value).toBe('1');
 
-  fireEvent.click(screen.getByRole('button', { name: 'Увеличить количество: Тестовый брелок' }));
+  fireEvent.click(
+    screen.getByRole('button', { name: 'Увеличить количество: Тестовый брелок' }),
+  );
   expect(screen.getByLabelText('Количество в корзине: Тестовый брелок').value).toBe('2');
 
-  fireEvent.click(screen.getByRole('button', { name: 'Уменьшить количество: Тестовый брелок' }));
-  fireEvent.click(screen.getByRole('button', { name: 'Уменьшить количество: Тестовый брелок' }));
+  fireEvent.click(
+    screen.getByRole('button', { name: 'Уменьшить количество: Тестовый брелок' }),
+  );
+  fireEvent.click(
+    screen.getByRole('button', { name: 'Уменьшить количество: Тестовый брелок' }),
+  );
   expect(screen.getByRole('button', { name: 'Добавить в корзину' })).toBeTruthy();
 });
