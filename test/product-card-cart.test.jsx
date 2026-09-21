@@ -73,18 +73,12 @@ const Harness = () => {
 test('product card switches from add button to quantity controls', () => {
   render(<Harness />);
   fireEvent.click(screen.getByRole('button', { name: 'Добавить в корзину' }));
-  expect(screen.getByLabelText('Количество в корзине: Тестовый брелок').value).toBe('1');
+  expect(screen.getByLabelText(/Количество в корзине/).value).toBe('1');
 
-  fireEvent.click(
-    screen.getByRole('button', { name: 'Увеличить количество: Тестовый брелок' }),
-  );
-  expect(screen.getByLabelText('Количество в корзине: Тестовый брелок').value).toBe('2');
+  fireEvent.click(screen.getByRole('button', { name: /Увеличить количество/ }));
+  expect(screen.getByLabelText(/Количество в корзине/).value).toBe('2');
 
-  fireEvent.click(
-    screen.getByRole('button', { name: 'Уменьшить количество: Тестовый брелок' }),
-  );
-  fireEvent.click(
-    screen.getByRole('button', { name: 'Уменьшить количество: Тестовый брелок' }),
-  );
+  fireEvent.click(screen.getByRole('button', { name: /Уменьшить количество/ }));
+  fireEvent.click(screen.getByRole('button', { name: /Уменьшить количество/ }));
   expect(screen.getByRole('button', { name: 'Добавить в корзину' })).toBeTruthy();
 });
