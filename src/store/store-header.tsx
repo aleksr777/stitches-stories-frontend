@@ -56,7 +56,11 @@ const StoreHeader = ({ menu, setMenu, openAuth }: Props) => {
               <Icon name="heart" />
             </Link>
           )}
-          <Link className="icon-button bag" to="/cart" aria-label={'Корзина, изделий: ' + cartCount}>
+          <Link
+            className="icon-button bag"
+            to="/cart"
+            aria-label={'Корзина, изделий: ' + cartCount}
+          >
             <Icon name="bag" />
             {cart.length > 0 && <span>{cartCount}</span>}
           </Link>
