@@ -8,8 +8,8 @@ import {
   type AdminUser,
 } from '../../features/admin/api/admin-api';
 import type { AuthSession } from '../../features/auth/api/session-api';
-import { formatSessionDate, getSessionDeviceLabel } from '../my-profile/session-device';
 import styles from '../my-profile/active-sessions.module.css';
+import UserSessionCard from './user-session-card';
 
 const UserManagementSessions = () => {
   const userId = Number(useParams().id);
@@ -26,7 +26,6 @@ const UserManagementSessions = () => {
       setIsLoading(false);
       return;
     }
-
     try {
       setError(null);
       setIsLoading(true);
@@ -43,9 +42,7 @@ const UserManagementSessions = () => {
     }
   }, [userId]);
 
-  useEffect(() => {
-    void loadSessions();
-  }, [loadSessions]);
+  useEffect(() => void loadSessions(), [loadSessions]);
 
   const handleRevoke = async (sessionId: string) => {
     setRevokingIds((current) => new Set(current).add(sessionId));
@@ -65,8 +62,7 @@ const UserManagementSessions = () => {
   };
 
   const handleRevokeAll = async () => {
-    if (sessions.length === 0) return;
-
+    if (!sessions.length) return;
     try {
       setError(null);
       setIsRevokingAll(true);
@@ -81,7 +77,6 @@ const UserManagementSessions = () => {
   };
 
   if (isLoading) return <p className={styles.notice}>Загружаем сеансы…</p>;
-
   return (
     <section className={styles.section}>
       <div className={styles.header}>
@@ -99,36 +94,22 @@ const UserManagementSessions = () => {
           {isRevokingAll ? 'Завершаем…' : 'Завершить все сеансы'}
         </button>
       </div>
-
       {error && <p className={styles.error}>{error}</p>}
-
-      {sessions.length === 0 ? (
-        <p className={styles.empty}>Активных сеансов нет.</p>
-      ) : (
+      {sessions.length ? (
         <div className={styles.list}>
           {sessions.map((session) => (
-            <article className={styles.card} key={session.id}>
-              <div className={styles.cardHeader}>
-                <strong>{getSessionDeviceLabel(session.user_agent)}</strong>
-              </div>
-              <span>IP: {session.ip_address ?? 'Неизвестно'}</span>
-              <span>Вход: {formatSessionDate(session.created_at)}</span>
-              <span>Последняя активность: {formatSessionDate(session.last_used_at)}</span>
-              <span>Истекает: {formatSessionDate(session.expires_at)}</span>
-              <button
-                className={styles.terminateButton}
-                type="button"
-                onClick={() => void handleRevoke(session.id)}
-                disabled={revokingIds.has(session.id) || isRevokingAll}
-              >
-                {revokingIds.has(session.id) ? 'Завершаем…' : 'Завершить сеанс'}
-              </button>
-            </article>
+            <UserSessionCard
+              key={session.id}
+              session={session}
+              busy={revokingIds.has(session.id) || isRevokingAll}
+              onRevoke={(id) => void handleRevoke(id)}
+            />
           ))}
         </div>
+      ) : (
+        <p className={styles.empty}>Активных сеансов нет.</p>
       )}
-
-      <Link className={styles.backLink} to={`/admin/users/${userId}`}>
+      <Link className={styles.backLink} to={'/admin/users/' + userId}>
         Вернуться к карточке пользователя
       </Link>
     </section>

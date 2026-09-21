@@ -1,8 +1,14 @@
 import { apiRequest } from '../../../shared/api/api-client';
 import { setAuthTokens, type AuthTokens } from '../../../shared/api/tokens';
+import {
+  isAdminLoginChallenge,
+  isBlockedAccountInfo,
+  type AdminLoginChallenge,
+  type LoginResult,
+  type VerificationRequestResult,
+} from './auth-api.models';
 import type {
   LoginDto,
-  MessageResponse,
   PasswordResetConfirmDto,
   PasswordResetRequestDto,
   RegistrationConfirmDto,
@@ -10,30 +16,13 @@ import type {
   RegistrationResendDto,
 } from './auth-api.types';
 
-export type VerificationRequestResult = MessageResponse & {
-  retry_after: number;
-  max_attempts: number;
-};
-
-export type BlockedAccountInfo = {
-  blocked: true;
-  blocked_reason: string | null;
-  contact_email: string;
-};
-export type AdminLoginChallenge = VerificationRequestResult & {
-  admin_confirmation_required: true;
-  challenge_id: string;
-  expires_in: number;
-};
-type LoginResult = AuthTokens | BlockedAccountInfo | AdminLoginChallenge;
-
-export const isBlockedAccountInfo = (value: LoginResult): value is BlockedAccountInfo => {
-  return 'blocked' in value && value.blocked === true;
-};
-
-export const isAdminLoginChallenge = (value: LoginResult): value is AdminLoginChallenge => {
-  return 'admin_confirmation_required' in value && value.admin_confirmation_required === true;
-};
+export {
+  isAdminLoginChallenge,
+  isBlockedAccountInfo,
+  type AdminLoginChallenge,
+  type BlockedAccountInfo,
+  type VerificationRequestResult,
+} from './auth-api.models';
 
 export const loginRequest = async (dto: LoginDto): Promise<LoginResult> => {
   const result = await apiRequest<LoginResult>('/auth/login', {
@@ -41,10 +30,7 @@ export const loginRequest = async (dto: LoginDto): Promise<LoginResult> => {
     auth: 'none',
     body: JSON.stringify(dto),
   });
-
-  if (!isBlockedAccountInfo(result) && !isAdminLoginChallenge(result)) {
-    setAuthTokens(result);
-  }
+  if (!isBlockedAccountInfo(result) && !isAdminLoginChallenge(result)) setAuthTokens(result);
   return result;
 };
 
@@ -60,40 +46,34 @@ export const confirmAdminLoginRequest = async (
   setAuthTokens(tokens);
 };
 
-export const resendAdminLoginRequest = (challengeId: string): Promise<AdminLoginChallenge> => {
-  return apiRequest<AdminLoginChallenge>('/auth/login/admin/resend', {
+export const resendAdminLoginRequest = (challengeId: string): Promise<AdminLoginChallenge> =>
+  apiRequest<AdminLoginChallenge>('/auth/login/admin/resend', {
     method: 'POST',
     auth: 'none',
     body: JSON.stringify({ challenge_id: challengeId }),
   });
-};
 
 export const validateSessionRequest = async (): Promise<void> => {
-  await apiRequest<null>('/auth/session', {
-    method: 'GET',
-    auth: 'access',
-  });
+  await apiRequest<null>('/auth/session', { method: 'GET', auth: 'access' });
 };
 
-export const registrationRequest = async (
+export const registrationRequest = (
   dto: RegistrationRequestDto,
-): Promise<VerificationRequestResult> => {
-  return apiRequest<VerificationRequestResult>('/auth/registration/request', {
+): Promise<VerificationRequestResult> =>
+  apiRequest<VerificationRequestResult>('/auth/registration/request', {
     method: 'POST',
     auth: 'none',
     body: JSON.stringify(dto),
   });
-};
 
-export const registrationResendRequest = async (
+export const registrationResendRequest = (
   dto: RegistrationResendDto,
-): Promise<VerificationRequestResult> => {
-  return apiRequest<VerificationRequestResult>('/auth/registration/resend', {
+): Promise<VerificationRequestResult> =>
+  apiRequest<VerificationRequestResult>('/auth/registration/resend', {
     method: 'POST',
     auth: 'none',
     body: JSON.stringify(dto),
   });
-};
 
 export const registrationConfirmRequest = async (
   dto: RegistrationConfirmDto,
@@ -107,15 +87,14 @@ export const registrationConfirmRequest = async (
   return tokens;
 };
 
-export const passwordResetRequest = async (
+export const passwordResetRequest = (
   dto: PasswordResetRequestDto,
-): Promise<VerificationRequestResult> => {
-  return apiRequest<VerificationRequestResult>('/auth/password-reset/request', {
+): Promise<VerificationRequestResult> =>
+  apiRequest<VerificationRequestResult>('/auth/password-reset/request', {
     method: 'POST',
     auth: 'none',
     body: JSON.stringify(dto),
   });
-};
 
 export const passwordResetConfirmRequest = async (
   dto: PasswordResetConfirmDto,
