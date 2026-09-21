@@ -1,11 +1,11 @@
 import { useRef, useState, type FormEvent } from 'react';
-import { Link } from 'react-router-dom';
 import { useAuth } from '../features/auth/model/use-auth';
 import { apiRequest } from '../shared/api/api-client';
 import CheckoutCart from './checkout-cart';
 import CheckoutRequestForm from './checkout-request-form';
+import { CheckoutSuccess, EmptyCart, OwnerCartUnavailable } from './checkout-states';
 import { useStore } from './context';
-import { documentRef, money, type Receipt } from './types';
+import { documentRef, type Receipt } from './types';
 
 const Checkout = () => {
   const { cart, products, documents, setQuantity, clearCart, retry, loading } = useStore();
@@ -35,17 +35,7 @@ const Checkout = () => {
         Проверяем доступ к корзине…
       </p>
     );
-  if (isOwner)
-    return (
-      <section className="page empty">
-        <p className="eyebrow">Мастерская</p>
-        <h1>Корзина недоступна</h1>
-        <p>Владелец магазина не может добавлять изделия в корзину и оформлять заявки на покупку.</p>
-        <Link className="button" to="/admin/shop">
-          Перейти к управлению магазином
-        </Link>
-      </section>
-    );
+  if (isOwner) return <OwnerCartUnavailable />;
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -88,34 +78,8 @@ const Checkout = () => {
     }
   };
 
-  if (receipt)
-    return (
-      <section className="page narrow success">
-        <p className="eyebrow">Спасибо за вашу историю</p>
-        <h1>Заявка отправлена</h1>
-        <p>
-          Номер заявки: <strong>{receipt.number}</strong>
-        </p>
-        <p>
-          Изделия на сумму {money(receipt.subtotalRub)}. Мастер свяжется с вами, чтобы подтвердить
-          детали, доставку и итоговую стоимость.
-        </p>
-        <p>Оплата ещё не произведена. Наличие и сроки требуют подтверждения.</p>
-        <Link className="button" to="/catalog">
-          Вернуться в коллекцию
-        </Link>
-      </section>
-    );
-  if (!cart.length)
-    return (
-      <section className="page empty">
-        <p className="eyebrow">Место для любимых вещей</p>
-        <h1>Ваша корзина пока пуста</h1>
-        <Link className="button" to="/catalog">
-          Найти свою историю
-        </Link>
-      </section>
-    );
+  if (receipt) return <CheckoutSuccess receipt={receipt} />;
+  if (!cart.length) return <EmptyCart />;
 
   return (
     <section className="page">
