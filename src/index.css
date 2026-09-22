@@ -767,6 +767,8 @@ dd {
 .modal {
   --modal-gap: clamp(0.5rem, 1rem, 2rem);
 
+  user-select: none;
+
   border: 1px solid var(--line);
   border-radius: 14px;
   padding: 0;
@@ -787,6 +789,15 @@ dd {
   transition:
     opacity 0.4s ease,
     transform 0.4s ease;
+}
+
+.modal * {
+  user-select: none;
+}
+
+.modal input,
+.modal textarea {
+  user-select: text;
 }
 
 .modal[data-state='open'] {
