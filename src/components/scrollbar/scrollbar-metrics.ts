@@ -1,7 +1,6 @@
 export const MIN_THUMB_HEIGHT = 40;
 
-const getViewportHeight = () =>
-  Math.max(window.visualViewport?.height ?? window.innerHeight, 1);
+const getViewportHeight = () => Math.max(window.visualViewport?.height ?? window.innerHeight, 1);
 
 const getDocumentHeight = () => {
   const root = document.documentElement;
@@ -35,10 +34,7 @@ export const getScrollbarMetrics = (track: HTMLDivElement | null) => {
         )
       : trackHeight;
   const thumbTravel = Math.max(trackHeight - thumbHeight, 0);
-  const scrollTop = Math.min(
-    Math.max(window.scrollY || scrollingElement.scrollTop, 0),
-    maxScroll,
-  );
+  const scrollTop = Math.min(Math.max(window.scrollY || scrollingElement.scrollTop, 0), maxScroll);
   return {
     maxScroll,
     trackTop,
