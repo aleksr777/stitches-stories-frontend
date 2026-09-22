@@ -37,9 +37,7 @@ const ProductCard = ({ product }: { product: Product }) => {
   return (
     <article className="product-card">
       <div className="product-visual">
-        <Link to={'/products/' + product.slug} aria-label={product.name}>
-          <ProductImage product={product} />
-        </Link>
+        <ProductImage product={product} />
         <button
           className={'favorite ' + (favorites.includes(product.id) ? 'selected' : '')}
           aria-label={'В избранное: ' + product.name}
@@ -54,7 +52,9 @@ const ProductCard = ({ product }: { product: Product }) => {
       <div className="product-card-content">
         <small>{product.category === 'covers' ? 'Обложка на паспорт' : 'Брелок с вышивкой'}</small>
         <h3>
-          <Link to={'/products/' + product.slug}>{product.name}</Link>
+          <Link className="product-card-link" to={'/products/' + product.slug}>
+            {product.name}
+          </Link>
         </h3>
         <p className="product-card-price">{money(product.priceRub)}</p>
         <ProductCardCartControl

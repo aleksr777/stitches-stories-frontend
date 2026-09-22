@@ -69,8 +69,13 @@ const Harness = () => {
   );
 };
 
-test('product card switches from add button to quantity controls', () => {
+test('product card uses one stretched product link and separate cart controls', () => {
   render(<Harness />);
+  const productLink = screen.getByRole('link', { name: 'Тестовый брелок' });
+  expect(productLink.getAttribute('href')).toBe('/products/card-test');
+  expect(productLink.className).toContain('product-card-link');
+  expect(screen.getAllByRole('link')).toHaveLength(1);
+
   fireEvent.click(screen.getByRole('button', { name: 'Добавить в корзину' }));
   expect(screen.getByLabelText(/Количество в корзине/).value).toBe('1');
 
