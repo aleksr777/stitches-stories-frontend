@@ -8,7 +8,9 @@ import App from './app.tsx';
 const rootElement = document.getElementById('root');
 
 document.addEventListener('dragstart', (event) => {
-  if (event.target instanceof HTMLImageElement) event.preventDefault();
+  const target = event.target;
+  if (!(target instanceof Element)) return;
+  if (target instanceof HTMLImageElement || target.closest('a')) event.preventDefault();
 });
 
 createRoot(rootElement!).render(
