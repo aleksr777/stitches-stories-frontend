@@ -14,7 +14,12 @@ export const About = () => (
       внимание к деталям и любовь к своему делу.
     </p>
     <p>Чтобы обсудить индивидуальные пожелания, напишите мастеру.</p>
-    <a className="button" href="https://vk.ru/stitchs_and_stories" target="_blank" rel="noreferrer">
+    <a
+      className="button contact-text"
+      href="https://vk.ru/stitchs_and_stories"
+      target="_blank"
+      rel="noreferrer"
+    >
       Связаться ВКонтакте
     </a>
   </section>

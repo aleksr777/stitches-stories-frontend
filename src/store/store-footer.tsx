@@ -12,7 +12,12 @@ const StoreFooter = ({ openDialog }: { openDialog: (name: string) => void }) => 
             Stitches &amp; Stories
           </Link>
           <p>Маленькие вещи. Большие чувства.</p>
-          <a href="https://vk.ru/stitchs_and_stories" target="_blank" rel="noreferrer">
+          <a
+            className="contact-text"
+            href="https://vk.ru/stitchs_and_stories"
+            target="_blank"
+            rel="noreferrer"
+          >
             ВКонтакте →
           </a>
         </div>

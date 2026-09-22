@@ -20,7 +20,7 @@ const AdminProductsSection = ({ products, busy, onCreate, onEdit, onRemove }: Pr
       products.map((product) => (
         <article className="admin-row" key={product.id}>
           <div>
-            <h3>{product.name}</h3>
+            <h3 className="product-name">{product.name}</h3>
             <p>
               {money(product.priceRub)} · {product.active ? 'В каталоге' : 'Скрыто'}
               {product.isDemo ? ' · Демо' : ''}

@@ -41,7 +41,7 @@ export const ProductPage = () => {
         <ProductGallery key={product.id} product={product} />
         <div>
           <p className="eyebrow">Вышито с теплом</p>
-          <h1>{product.name}</h1>
+          <h1 className="product-name">{product.name}</h1>
           <p className="price">{money(product.priceRub)}</p>
           {product.isDemo && (
             <p className="notice">

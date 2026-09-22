@@ -7,6 +7,10 @@ import App from './app.tsx';
 
 const rootElement = document.getElementById('root');
 
+document.addEventListener('dragstart', (event) => {
+  if (event.target instanceof HTMLImageElement) event.preventDefault();
+});
+
 createRoot(rootElement!).render(
   <StrictMode>
     <BrowserRouter basename={import.meta.env.BASE_URL}>

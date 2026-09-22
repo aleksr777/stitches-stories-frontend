@@ -17,12 +17,17 @@ const AdminOrdersSection = ({
           <h3>
             № {order.id.slice(0, 8).toUpperCase()} · {order.name}
           </h3>
-          <p>
+          <p className="contact-text">
             {order.email} · {order.phone ?? 'Телефон не указан'} · {order.city}
           </p>
           <p>
-            {order.items.map((item) => item.name + ' × ' + item.quantity).join(', ')} —{' '}
-            {money(order.subtotalRub)}
+            {order.items.map((item, index) => (
+              <span key={item.productId}>
+                {index > 0 && ', '}
+                <span className="product-name">{item.name}</span> × {item.quantity}
+              </span>
+            ))}{' '}
+            — {money(order.subtotalRub)}
           </p>
           <p>{order.comment}</p>
           <label>

@@ -52,7 +52,7 @@ const ProductCard = ({ product }: { product: Product }) => {
       <div className="product-card-content">
         <small>{product.category === 'covers' ? 'Обложка на паспорт' : 'Брелок с вышивкой'}</small>
         <h3>
-          <Link className="product-card-link" to={'/products/' + product.slug}>
+          <Link className="product-card-link product-name" to={'/products/' + product.slug}>
             {product.name}
           </Link>
         </h3>

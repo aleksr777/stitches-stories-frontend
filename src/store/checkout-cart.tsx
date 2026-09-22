@@ -25,7 +25,7 @@ const CheckoutCart = ({ selected, total, busy, setQuantity }: Props) => (
                 <ProductImage product={product} />
               </Link>
               <div>
-                <h3>{product.name}</h3>
+                <h3 className="product-name">{product.name}</h3>
                 <p>{money(product.priceRub)}</p>
                 <label>
                   Количество{' '}

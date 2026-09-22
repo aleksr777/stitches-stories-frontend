@@ -12,7 +12,7 @@ const formatLastActivity = (value: string | null) => {
 const UserManagementUserData = ({ user }: UserManagementUserDataProps) => (
   <div className={styles.userData}>
     <strong>{user.nickname ?? 'Без псевдонима'}</strong>
-    <span>Почта: {user.email}</span>
+    <span className="contact-text">Почта: {user.email}</span>
     <span>Имя: {user.name ?? '—'}</span>
     <span>Возраст: {user.age ?? '—'}</span>
     <span>Статус: {user.is_blocked ? 'Заблокирован' : 'Активен'}</span>

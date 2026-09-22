@@ -58,6 +58,18 @@ html::-webkit-scrollbar {
 body {
   margin: 0;
   min-width: 320px;
+  user-select: none;
+}
+
+input,
+textarea,
+[contenteditable='true'],
+.contact-text,
+.product-name,
+a[href^='tel:'],
+a[href^='mailto:'],
+a[href^='sms:'] {
+  user-select: text;
 }
 
 button,
