@@ -448,6 +448,18 @@ small {
   align-items: center;
   justify-content: center;
   color: inherit;
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease,
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.favorite:hover:not(:disabled) {
+  color: var(--accent);
+  background: #f1ddd9;
+  transform: translateY(-1px) scale(1.04);
+  box-shadow: 0 4px 12px rgb(56 47 45 / 14%);
 }
 
 .favorite.selected {
@@ -456,6 +468,14 @@ small {
   box-shadow:
     0 0 0 2px #faf7f2,
     0 4px 12px rgb(56 47 45 / 22%);
+}
+
+.favorite.selected:hover:not(:disabled) {
+  color: #fff;
+  background: #754051;
+  box-shadow:
+    0 0 0 2px #faf7f2,
+    0 6px 16px rgb(56 47 45 / 28%);
 }
 
 .favorite.selected svg {
