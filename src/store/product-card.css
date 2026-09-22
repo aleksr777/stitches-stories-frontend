@@ -21,6 +21,10 @@
   border-radius: 7px;
 }
 
+.product-card .product-photo {
+  object-fit: cover;
+}
+
 .product-card-content {
   display: flex;
   flex: 1;

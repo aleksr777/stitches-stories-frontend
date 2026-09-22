@@ -16,7 +16,7 @@ const product = {
   materials: 'Хлопок',
   dimensions: '5 см',
   productionTime: 'По согласованию',
-  images: [],
+  images: ['/shop/images/33333333-3333-4333-8333-333333333333'],
   stock: 3,
   featured: false,
   active: true,
@@ -75,6 +75,9 @@ test('product card uses one stretched product link and separate cart controls', 
   expect(productLink.getAttribute('href')).toBe('/products/card-test');
   expect(productLink.className).toContain('product-card-link');
   expect(screen.getAllByRole('link')).toHaveLength(1);
+  expect(screen.getByRole('img', { name: 'Тестовый брелок' }).getAttribute('alt')).toBe(
+    'Тестовый брелок',
+  );
 
   fireEvent.click(screen.getByRole('button', { name: 'Добавить в корзину' }));
   expect(screen.getByLabelText(/Количество в корзине/).value).toBe('1');
