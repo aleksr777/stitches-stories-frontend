@@ -56,7 +56,11 @@ export const useScrollbarState = () => {
     });
 
     return () => {
-      if (frameRef.current !== null) window.cancelAnimationFrame(frameRef.current);
+      if (frameRef.current !== null) {
+        window.cancelAnimationFrame(frameRef.current);
+        // Allow the next effect setup (StrictMode or navigation) to schedule a fresh frame.
+        frameRef.current = null;
+      }
       window.clearTimeout(delayedUpdate);
       window.removeEventListener('scroll', scheduleUpdate);
       window.removeEventListener('resize', scheduleUpdate);

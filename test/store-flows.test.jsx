@@ -1,4 +1,5 @@
 import { render, fireEvent, screen, waitFor, within } from '@testing-library/react';
+import { StrictMode } from 'react';
 import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { beforeEach, expect, test, vi } from 'vitest';
 import App from '../src/app';
@@ -41,7 +42,7 @@ const documents = [
 }));
 const response = (body, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
-const start = (path, { failOrder = false } = {}) => {
+const start = (path, { failOrder = false, strictMode = false } = {}) => {
   let authenticated = false;
   let failed = false;
   const calls = [];
@@ -128,10 +129,41 @@ const start = (path, { failOrder = false } = {}) => {
     ],
     { initialEntries: [path] },
   );
-  render(<RouterProvider router={router} />);
+  const app = <RouterProvider router={router} />;
+  render(strictMode ? <StrictMode>{app}</StrictMode> : app);
   return { calls, router };
 };
 beforeEach(() => localStorage.clear());
+
+test('page scrollbar survives StrictMode, navigation and opening a store modal', async () => {
+  const height = vi.spyOn(document.documentElement, 'scrollHeight', 'get');
+  height.mockReturnValue(2400);
+  vi.spyOn(window, 'scrollTo').mockImplementation(() => {});
+  start('/products/quiet-garden', { strictMode: true });
+
+  const scrollbar = await screen.findByRole('scrollbar', { name: 'Прокрутка страницы' });
+  const login = screen.getByRole('button', { name: 'Войти в аккаунт' });
+  await waitFor(() => expect(login.disabled).toBe(false));
+  fireEvent.click(login);
+  const dialog = await screen.findByRole('dialog');
+  // Escape can dismiss the dialog even while its opening animation is running.
+  fireEvent(dialog, new Event('cancel', { cancelable: true }));
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+  expect(document.body.style.position).toBe('');
+
+  const menu = screen.getByRole('navigation', { name: 'Главное меню' });
+  fireEvent.click(within(menu).getByRole('link', { name: 'Коллекция' }));
+  height.mockReturnValue(window.innerHeight);
+  fireEvent.resize(window);
+  await waitFor(() => expect(scrollbar.getAttribute('aria-hidden')).toBe('true'));
+
+  height.mockReturnValue(2400);
+  fireEvent.resize(window);
+  await waitFor(() => expect(scrollbar.getAttribute('aria-hidden')).toBe('false'));
+  vi.spyOn(window, 'scrollY', 'get').mockReturnValue((2400 - window.innerHeight) / 2);
+  fireEvent.scroll(window);
+  await waitFor(() => expect(scrollbar.getAttribute('aria-valuenow')).toBe('50'));
+});
 
 test('product, cart and checkout keep guest data and retry the same request after server failure', async () => {
   const { calls } = start('/products/quiet-garden', { failOrder: true });
