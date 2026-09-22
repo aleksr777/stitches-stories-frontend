@@ -451,12 +451,15 @@ small {
 }
 
 .favorite.selected {
-  color: var(--accent);
-  background: #ebc5c3;
+  color: #fff;
+  background: var(--accent);
+  box-shadow:
+    0 0 0 2px #faf7f2,
+    0 4px 12px rgb(56 47 45 / 22%);
 }
 
 .favorite.selected svg {
-  fill: #8d4e6020;
+  fill: currentcolor;
 }
 
 .demo-tag {
