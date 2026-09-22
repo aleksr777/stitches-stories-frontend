@@ -135,8 +135,8 @@
   }
 
   .product-card:hover {
-    border-color: #b99e92;
-    box-shadow: 0 12px 30px rgb(56 47 45 / 10%);
+    border-color: #a98778;
+    box-shadow: 0 14px 34px rgb(56 47 45 / 14%);
   }
 }
 
