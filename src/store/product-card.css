@@ -127,7 +127,6 @@
   z-index: 2;
 }
 
-
 @media (hover: hover) and (pointer: fine) and (width > 600px) {
   .product-card {
     transition:
