@@ -766,9 +766,7 @@ dd {
 
 .modal {
   --modal-gap: clamp(0.5rem, 1rem, 2rem);
-
   user-select: none;
-
   border: 1px solid var(--line);
   border-radius: 14px;
   padding: 0;
