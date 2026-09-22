@@ -9,6 +9,7 @@ import { useAuth } from '../features/auth/model/use-auth';
 import AuthDialog, { type AuthMode } from './auth-dialog';
 import { useStore } from './context';
 import CookiesDialog from './cookies-dialog';
+import CurrentPageLinkGuard from './current-page-link-guard';
 import { NewsletterDialog } from './newsletter';
 import StoreFooter from './store-footer';
 import StoreHeader from './store-header';
@@ -52,6 +53,7 @@ const Layout = () => {
 
   return (
     <>
+      <CurrentPageLinkGuard />
       <CustomScrollbar />
       <StoreHeader menu={menu} setMenu={setMenu} openAuth={openAuth} />
       {error && (
