@@ -449,17 +449,15 @@ small {
   justify-content: center;
   color: inherit;
   transition:
-    background-color 0.15s ease,
-    color 0.15s ease,
-    transform 0.15s ease,
-    box-shadow 0.15s ease;
+    background-color 0.22s ease,
+    color 0.22s ease,
+    box-shadow 0.22s ease;
 }
 
 .favorite:hover:not(:disabled) {
   color: var(--accent);
   background: #f1ddd9;
-  transform: translateY(-1px) scale(1.04);
-  box-shadow: 0 4px 12px rgb(56 47 45 / 14%);
+  box-shadow: 0 3px 9px rgb(56 47 45 / 12%);
 }
 
 .favorite.selected {
@@ -475,7 +473,11 @@ small {
   background: #754051;
   box-shadow:
     0 0 0 2px #faf7f2,
-    0 6px 16px rgb(56 47 45 / 28%);
+    0 4px 12px rgb(56 47 45 / 22%);
+}
+
+.favorite svg {
+  transition: fill 0.22s ease;
 }
 
 .favorite.selected svg {
