@@ -4,6 +4,7 @@ import AdminProductEditor from './admin-product-editor';
 import AdminProductsSection from './admin-products-section';
 import AdminOrdersSection from './admin-orders-section';
 import AdminRemoveDialog from './admin-remove-dialog';
+import AdminCategoriesSection from './admin-categories-section';
 import type { Product } from './types';
 import { useAdminData } from './use-admin-data';
 
@@ -18,9 +19,21 @@ const Admin = () => {
       <h1>Управление магазином</h1>
       {data.error && (
         <p role="alert" className="error">
-          {data.error}
+          {data.error}{' '}
+          <button className="text-link" onClick={data.reload} disabled={data.busy}>
+            Повторить загрузку
+          </button>
         </p>
       )}
+      {data.loading && <p role="status">Загружаем мастерскую…</p>}
+      <AdminCategoriesSection
+        categories={data.categories}
+        busy={data.busy || data.loading}
+        error={data.error}
+        clearError={() => data.setError('')}
+        save={data.saveCategory}
+        remove={data.removeCategory}
+      />
       <AdminProductsSection
         products={data.products}
         busy={data.busy}
@@ -46,6 +59,7 @@ const Admin = () => {
         <AdminProductEditor
           key={editing.id || 'new'}
           product={editing}
+          categories={data.categories}
           busy={data.busy}
           error={data.error}
           close={() => setEditing(null)}

@@ -1,6 +1,12 @@
-import type { Product } from './types';
+import type { Category, Product } from './types';
 
-const AdminProductFields = ({ product }: { product: Product }) => (
+const AdminProductFields = ({
+  product,
+  categories,
+}: {
+  product: Product;
+  categories: Category[];
+}) => (
   <>
     <div className="product-editor-details">
       <label>
@@ -9,9 +15,13 @@ const AdminProductFields = ({ product }: { product: Product }) => (
       </label>
       <label>
         Категория
-        <select name="category" defaultValue={product.category}>
-          <option value="keychains">Брелок</option>
-          <option value="covers">Обложка</option>
+        <select name="category" defaultValue={product.category ?? ''}>
+          <option value="">Без категории</option>
+          {categories.map((category) => (
+            <option key={category.id} value={category.id}>
+              {category.name}
+            </option>
+          ))}
         </select>
       </label>
       <label>

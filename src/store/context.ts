@@ -1,7 +1,8 @@
 import { createContext, useContext } from 'react';
-import type { CartItem, LegalDocument, Product } from './types';
+import type { CartItem, Category, LegalDocument, Product } from './types';
 export type StoreState = {
   products: Product[];
+  categories: Category[];
   documents: LegalDocument[];
   cart: CartItem[];
   favorites: string[];

@@ -1,7 +1,7 @@
 import type { Product } from './types';
 
 export const productDefaults = {
-  category: 'keychains' as const,
+  category: null,
   description: 'Описание изделия уточняется.',
   materials: 'Материалы уточняются.',
   dimensions: 'Размеры уточняются.',

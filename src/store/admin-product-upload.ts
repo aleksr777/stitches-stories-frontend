@@ -28,7 +28,7 @@ export const buildProductUpload = (
   const body = {
     slug: product.id ? product.slug : newProductSlug(name),
     name,
-    category: String(data.get('category')),
+    category: String(data.get('category') ?? '') || null,
     priceRub,
     description: text('description', productDefaults.description),
     materials: text('materials', productDefaults.materials),

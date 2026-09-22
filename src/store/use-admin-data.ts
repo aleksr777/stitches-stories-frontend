@@ -1,86 +1,107 @@
 import { useEffect, useState } from 'react';
 import { apiRequest } from '../shared/api/api-client';
 import { useStore } from './context';
-import type { OrderRequest, Product } from './types';
+import type { AdminCategory, Category, OrderRequest, Product } from './types';
 
 export const useAdminData = () => {
   const { retry } = useStore();
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<OrderRequest[]>([]);
+  const [categories, setCategories] = useState<AdminCategory[]>([]);
   const [error, setError] = useState('');
   const [revision, setRevision] = useState(0);
   const [busy, setBusy] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let active = true;
+    setLoading(true);
     Promise.all([
       apiRequest<Product[]>('/shop/admin/products'),
       apiRequest<OrderRequest[]>('/shop/admin/requests'),
+      apiRequest<AdminCategory[]>('/shop/admin/categories'),
     ])
-      .then(([nextProducts, nextOrders]) => {
+      .then(([nextProducts, nextOrders, nextCategories]) => {
         if (active) {
           setProducts(nextProducts);
           setOrders(nextOrders);
+          setCategories(nextCategories);
         }
       })
       .catch((err) => {
         if (active) setError(err instanceof Error ? err.message : 'Ошибка загрузки.');
+      })
+      .finally(() => {
+        if (active) setLoading(false);
       });
     return () => {
       active = false;
     };
   }, [revision]);
 
-  const saveProduct = async (product: Product, upload: FormData) => {
+  const change = async (action: () => Promise<unknown>) => {
     setBusy(true);
     setError('');
     try {
-      await apiRequest('/shop/admin/products' + (product.id ? '/' + product.id : ''), {
+      await action();
+      setRevision((value) => value + 1);
+      retry();
+      return true;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Не удалось сохранить изменения.');
+      return false;
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const saveProduct = (product: Product, upload: FormData) =>
+    change(() =>
+      apiRequest('/shop/admin/products' + (product.id ? '/' + product.id : ''), {
         method: product.id ? 'PATCH' : 'POST',
         body: upload,
         timeoutMs: 120000,
-      });
-      setRevision((value) => value + 1);
-      retry();
-      return true;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Не удалось сохранить.');
-      return false;
-    } finally {
-      setBusy(false);
-    }
-  };
+      }),
+    );
 
-  const removeProduct = async (product: Product) => {
-    setBusy(true);
-    setError('');
-    try {
-      await apiRequest('/shop/admin/products/' + product.id, { method: 'DELETE' });
-      setRevision((value) => value + 1);
-      retry();
-      return true;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Не удалось удалить изделие.');
-      return false;
-    } finally {
-      setBusy(false);
-    }
-  };
+  const removeProduct = (product: Product) =>
+    change(() => apiRequest('/shop/admin/products/' + product.id, { method: 'DELETE' }));
 
-  const updateStatus = async (id: string, value: string) => {
-    setBusy(true);
-    try {
-      await apiRequest('/shop/admin/requests/' + id, {
+  const saveCategory = (category: Category | null, name: string) =>
+    change(() =>
+      apiRequest('/shop/admin/categories' + (category ? '/' + category.id : ''), {
+        method: category ? 'PATCH' : 'POST',
+        body: JSON.stringify({ name }),
+      }),
+    );
+
+  const removeCategory = (category: Category) =>
+    change(() => apiRequest('/shop/admin/categories/' + category.id, { method: 'DELETE' }));
+
+  const updateStatus = (id: string, value: string) =>
+    change(() =>
+      apiRequest('/shop/admin/requests/' + id, {
         method: 'PATCH',
         body: JSON.stringify({ status: value }),
-      });
-      setRevision((current) => current + 1);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Не удалось обновить статус.');
-    } finally {
-      setBusy(false);
-    }
-  };
+      }),
+    );
 
-  return { products, orders, error, setError, busy, saveProduct, removeProduct, updateStatus };
+  return {
+    products,
+    orders,
+    categories,
+    error,
+    setError,
+    busy,
+    loading,
+    saveProduct,
+    removeProduct,
+    updateStatus,
+    saveCategory,
+    removeCategory,
+    reload: () => {
+      setError('');
+      setRevision((value) => value + 1);
+    },
+  };
 };

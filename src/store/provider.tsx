@@ -4,11 +4,13 @@ import { apiRequest } from '../shared/api/api-client';
 import { useCartState } from './use-cart-state';
 import { StoreContext } from './context';
 import { LegalDialog } from './legal';
-import type { LegalDocument, Product } from './types';
+import type { Category, LegalDocument, Product } from './types';
+import './categories.css';
 
 const StoreProvider = ({ children }: PropsWithChildren) => {
   const { isAuth, role } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [documents, setDocuments] = useState<LegalDocument[]>([]);
   const { cart, setQuantity, add, clearCart } = useCartState(products);
   const [favorites, setFavorites] = useState<string[]>([]);
@@ -24,11 +26,13 @@ const StoreProvider = ({ children }: PropsWithChildren) => {
     Promise.all([
       apiRequest<Product[]>('/shop/products', { auth: 'none' }),
       apiRequest<LegalDocument[]>('/legal/documents', { auth: 'none' }),
+      apiRequest<Category[]>('/shop/categories', { auth: 'none' }),
     ])
-      .then(([nextProducts, nextDocuments]) => {
+      .then(([nextProducts, nextDocuments, nextCategories]) => {
         if (active) {
           setProducts(nextProducts);
           setDocuments(nextDocuments);
+          setCategories(nextCategories);
         }
       })
       .catch(() => {
@@ -71,6 +75,7 @@ const StoreProvider = ({ children }: PropsWithChildren) => {
     <StoreContext.Provider
       value={{
         products,
+        categories,
         documents,
         cart,
         favorites,

@@ -5,7 +5,7 @@ import Icon from './icons';
 import ProductCard from './product-card';
 
 const Catalog = ({ favoritesOnly = false }: { favoritesOnly?: boolean }) => {
-  const { products, favorites, loading } = useStore();
+  const { products, categories, favorites, loading } = useStore();
   const [params, setParams] = useSearchParams();
   const [sort, setSort] = useState('default');
   const category = params.get('category') ?? '';
@@ -26,28 +26,27 @@ const Catalog = ({ favoritesOnly = false }: { favoritesOnly?: boolean }) => {
     <section className="page">
       <p className="eyebrow">Выбрано с теплом</p>
       <h1>{favoritesOnly ? 'Ваше избранное' : 'Найдите свою историю'}</h1>
-      <p className="lead">Брелоки и обложки, в которых живёт немного тепла.</p>
+      <p className="lead">Вышитые изделия для себя, близких и уютных мгновений.</p>
       {!catalogIsEmpty && (
         <div className="catalog-tools">
-          <div className="tabs">
-            {[
-              ['', 'Все изделия'],
-              ['keychains', 'Брелоки'],
-              ['covers', 'Обложки'],
-            ].map(([id, label]) => (
-              <button
-                key={id}
-                className={category === id ? 'active' : ''}
-                onClick={() => {
-                  const next = new URLSearchParams(params);
-                  if (id) next.set('category', id);
-                  else next.delete('category');
-                  setParams(next);
-                }}
-              >
-                {label}
-              </button>
-            ))}
+          <div className="tabs category-tabs" role="group" aria-label="Категории изделий">
+            {[['', 'Все изделия'], ...categories.map(({ id, name }) => [id, name])].map(
+              ([id, label]) => (
+                <button
+                  key={id}
+                  className={category === id ? 'active' : ''}
+                  aria-pressed={category === id}
+                  onClick={() => {
+                    const next = new URLSearchParams(params);
+                    if (id) next.set('category', id);
+                    else next.delete('category');
+                    setParams(next);
+                  }}
+                >
+                  {label}
+                </button>
+              ),
+            )}
           </div>
           <label className="search-field">
             <Icon name="search" />

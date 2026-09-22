@@ -9,7 +9,7 @@ import { money, type Product } from './types';
 import './product-card.css';
 
 const ProductCard = ({ product }: { product: Product }) => {
-  const { cart, favorites, add, setQuantity, toggleFavorite } = useStore();
+  const { cart, categories, favorites, add, setQuantity, toggleFavorite } = useStore();
   const { isAuth, role } = useAuth();
   const navigate = useNavigate();
   const [error, setError] = useState('');
@@ -50,7 +50,10 @@ const ProductCard = ({ product }: { product: Product }) => {
         {product.isDemo && <span className="demo-tag">Пример</span>}
       </div>
       <div className="product-card-content">
-        <small>{product.category === 'covers' ? 'Обложка на паспорт' : 'Брелок с вышивкой'}</small>
+        <small>
+          {categories.find((category) => category.id === product.category)?.name ??
+            'Изделие с вышивкой'}
+        </small>
         <h3>
           <Link className="product-card-link product-name" to={'/products/' + product.slug}>
             {product.name}

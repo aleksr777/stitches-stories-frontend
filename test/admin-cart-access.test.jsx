@@ -45,6 +45,7 @@ const auth = {
 
 const createStore = () => ({
   products: [product],
+  categories: [{ id: 'keychains', name: 'Брелоки' }],
   documents: [],
   cart: [{ productId: product.id, quantity: 1 }],
   favorites: [],

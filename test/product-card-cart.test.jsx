@@ -46,6 +46,7 @@ const Harness = () => {
   const setQuantity = (id, quantity) => setCart(quantity > 0 ? [{ productId: id, quantity }] : []);
   const store = {
     products: [product],
+    categories: [{ id: 'keychains', name: 'Брелоки' }],
     documents: [],
     cart,
     favorites: [],

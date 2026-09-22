@@ -1,0 +1,56 @@
+.category-tabs {
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.category-tabs button,
+.category-row h3,
+.footer-grid a {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.category-row > div {
+  min-width: 0;
+}
+
+.category-row .admin-row-actions {
+  flex-shrink: 0;
+}
+
+.category-fields {
+  display: grid;
+  gap: 1.25rem;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.category-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+@media (width <= 40rem) {
+  .categories-panel .section-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .category-actions .button {
+    flex: 1 1 100%;
+  }
+
+  .category-row {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .category-row .admin-row-actions {
+    justify-content: flex-start;
+    width: 100%;
+  }
+}

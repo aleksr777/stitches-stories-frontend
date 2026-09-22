@@ -8,11 +8,13 @@ export type LegalDocument = DocumentRef & {
   summary: string[][];
   sections: string[][];
 };
+export type Category = { id: string; name: string };
+export type AdminCategory = Category & { productCount: number };
 export type Product = {
   id: string;
   slug: string;
   name: string;
-  category: 'keychains' | 'covers';
+  category: string | null;
   priceRub: number;
   description: string;
   materials: string;

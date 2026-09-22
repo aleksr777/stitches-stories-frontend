@@ -42,10 +42,27 @@ const documents = [
 }));
 const response = (body, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
-const start = (path, { failOrder = false, strictMode = false } = {}) => {
+const start = (
+  path,
+  {
+    failOrder = false,
+    strictMode = false,
+    owner = false,
+    failCategoryDelete = false,
+    emptyCategories = false,
+  } = {},
+) => {
   let authenticated = false;
   let failed = false;
   const calls = [];
+  let products = [product];
+  let categories = emptyCategories
+    ? []
+    : [
+        { id: 'keychains', name: 'Брелоки' },
+        { id: 'covers', name: 'Обложки на паспорт' },
+      ];
+  let nextCategory = 0;
   const tokens = {
     access_token: 'test-token',
     access_token_expires: Math.floor(Date.now() / 1000) + 3600,
@@ -54,10 +71,60 @@ const start = (path, { failOrder = false, strictMode = false } = {}) => {
     'fetch',
     vi.fn(async (url, options = {}) => {
       const endpoint = new URL(url).pathname.replace(/^\/api/, '');
-      const body = options.body ? JSON.parse(options.body) : null;
+      const body =
+        options.body instanceof FormData
+          ? JSON.parse(options.body.get('data'))
+          : options.body
+            ? JSON.parse(options.body)
+            : null;
       calls.push({ endpoint, body, headers: options.headers });
-      if (endpoint === '/auth/refresh-tokens') return response({ message: 'No session' }, 401);
-      if (endpoint === '/shop/products') return response([product]);
+      if (endpoint === '/auth/refresh-tokens')
+        return owner ? response(tokens) : response({ message: 'No session' }, 401);
+      if (['/shop/products', '/shop/admin/products'].includes(endpoint)) {
+        if (options.method === 'POST') {
+          products = [...products, { ...body, id: 'new-product' }];
+          return response(products.at(-1), 201);
+        }
+        return response(products);
+      }
+      if (endpoint === '/shop/categories') return response(categories);
+      if (endpoint === '/shop/admin/categories' && options.method === 'POST') {
+        if (
+          categories.some(
+            (category) => category.name.toLowerCase() === body.name.trim().toLowerCase(),
+          )
+        )
+          return response({ message: 'Категория с таким названием уже существует.' }, 409);
+        const category = { id: 'category-' + ++nextCategory, name: body.name.trim() };
+        categories = [...categories, category];
+        return response(category, 201);
+      }
+      if (endpoint === '/shop/admin/categories')
+        return response(
+          categories.map((category) => ({
+            ...category,
+            productCount: products.filter((item) => item.category === category.id).length,
+          })),
+        );
+      if (endpoint.startsWith('/shop/admin/categories/')) {
+        const id = endpoint.split('/').at(-1);
+        if (options.method === 'PATCH') {
+          categories = categories.map((category) =>
+            category.id === id ? { ...category, name: body.name } : category,
+          );
+          return response(categories.find((category) => category.id === id));
+        }
+        if (failCategoryDelete || products.some((item) => item.category === id))
+          return response(
+            {
+              message:
+                'В категории есть изделия. Сначала перенесите их в другую категорию или удалите.',
+            },
+            409,
+          );
+        categories = categories.filter((category) => category.id !== id);
+        return response({ deleted: true });
+      }
       if (endpoint === '/legal/documents') return response(documents);
       if (endpoint === '/auth/registration/request')
         return response({ message: 'Code sent', retry_after: 60, max_attempts: 5 });
@@ -94,11 +161,23 @@ const start = (path, { failOrder = false, strictMode = false } = {}) => {
         });
       }
       if (endpoint === '/auth/session')
-        return new Response(null, { status: authenticated ? 204 : 401 });
+        return new Response(null, { status: authenticated || owner ? 204 : 401 });
       if (endpoint === '/users/me')
-        return response({ id: 1, name: 'Надежда', email: 'shopper@example.test', role: 'user' });
+        return response({
+          id: 1,
+          name: 'Надежда',
+          email: 'shopper@example.test',
+          role: owner ? 'admin' : 'user',
+        });
       if (endpoint === '/shop/me/consents') return response({ marketing: false });
-      if (['/shop/me/requests', '/shop/me/favorites', '/legal/me/events'].includes(endpoint))
+      if (
+        [
+          '/shop/me/requests',
+          '/shop/me/favorites',
+          '/legal/me/events',
+          '/shop/admin/requests',
+        ].includes(endpoint)
+      )
         return response([]);
       if (endpoint === '/shop/requests') {
         if (failOrder && !failed) {
@@ -134,6 +213,136 @@ const start = (path, { failOrder = false, strictMode = false } = {}) => {
   return { calls, router };
 };
 beforeEach(() => localStorage.clear());
+
+const openCategoryEditor = async () => {
+  const button = await screen.findByRole('button', { name: 'Новая категория' });
+  await waitFor(() => expect(button.disabled).toBe(false));
+  fireEvent.click(button);
+  return screen.getByRole('dialog', { name: 'Новая категория' });
+};
+
+test('owner creates a category, assigns a product and renames its catalog filter without changing the ID', async () => {
+  vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:test-category-photo');
+  vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
+  const { calls, router } = start('/admin/shop', { owner: true });
+  let dialog = await openCategoryEditor();
+  fireEvent.change(within(dialog).getByLabelText('Название категории'), {
+    target: { value: 'Панно' },
+  });
+  fireEvent.click(within(dialog).getByRole('button', { name: 'Сохранить категорию' }));
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+  const panel = screen.getByRole('region', { name: 'Категории' });
+  await within(panel).findByRole('heading', { name: 'Панно' });
+
+  fireEvent.click(screen.getByRole('button', { name: 'Новое изделие' }));
+  dialog = screen.getByRole('dialog', { name: 'Новое изделие' });
+  const category = within(dialog).getByLabelText('Категория');
+  expect(category.required).toBe(false);
+  fireEvent.change(category, { target: { value: 'category-1' } });
+  fireEvent.change(within(dialog).getByLabelText('Название'), {
+    target: { value: 'Вышитое панно «Лес»' },
+  });
+  fireEvent.change(within(dialog).getByLabelText('Цена, ₽'), { target: { value: '3500' } });
+  fireEvent.click(within(dialog).getByLabelText('Показывать в каталоге'));
+  fireEvent.change(within(dialog).getByLabelText('Добавить фотографии'), {
+    target: { files: [new File(['photo'], 'panel.png', { type: 'image/png' })] },
+  });
+  fireEvent.click(within(dialog).getByRole('button', { name: 'Сохранить изделие' }));
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+  expect(
+    calls.find((call) => call.endpoint === '/shop/admin/products' && call.body).body.category,
+  ).toBe('category-1');
+
+  const rename = within(panel).getByRole('button', { name: 'Переименовать категорию: Панно' });
+  await waitFor(() => expect(rename.disabled).toBe(false));
+  fireEvent.click(rename);
+  dialog = screen.getByRole('dialog', { name: 'Переименовать категорию' });
+  fireEvent.change(within(dialog).getByLabelText('Название категории'), {
+    target: { value: 'Картины с вышивкой' },
+  });
+  fireEvent.click(within(dialog).getByRole('button', { name: 'Сохранить категорию' }));
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+  await within(panel).findByRole('heading', { name: 'Картины с вышивкой' });
+  expect(
+    within(panel).getByRole('button', { name: 'Удалить категорию: Картины с вышивкой' }).disabled,
+  ).toBe(true);
+
+  fireEvent.click(
+    within(screen.getByRole('navigation', { name: 'Главное меню' })).getByRole('link', {
+      name: 'Коллекция',
+    }),
+  );
+  const filter = await screen.findByRole('group', { name: 'Категории изделий' });
+  fireEvent.click(await within(filter).findByRole('button', { name: 'Картины с вышивкой' }));
+  expect(router.state.location.search).toBe('?category=category-1');
+  expect(screen.getByRole('heading', { name: 'Вышитое панно «Лес»' })).toBeTruthy();
+  expect(screen.queryByRole('heading', { name: product.name })).toBeNull();
+  expect(within(filter).queryByRole('button', { name: 'Панно' })).toBeNull();
+});
+
+test('owner can delete an empty category while deletion of an occupied category stays disabled', async () => {
+  const { calls } = start('/admin/shop', { owner: true });
+  const panel = await screen.findByRole('region', { name: 'Категории' });
+  const occupied = await within(panel).findByRole('button', { name: 'Удалить категорию: Брелоки' });
+  expect(occupied.disabled).toBe(true);
+  fireEvent.click(occupied);
+  expect(screen.queryByRole('dialog')).toBeNull();
+  const empty = within(panel).getByRole('button', {
+    name: 'Удалить категорию: Обложки на паспорт',
+  });
+  await waitFor(() => expect(empty.disabled).toBe(false));
+  fireEvent.click(empty);
+  const dialog = screen.getByRole('dialog', { name: 'Удалить категорию?' });
+  fireEvent.click(within(dialog).getByRole('button', { name: 'Удалить категорию' }));
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+  await waitFor(() =>
+    expect(within(panel).queryByRole('heading', { name: 'Обложки на паспорт' })).toBeNull(),
+  );
+  await waitFor(() =>
+    expect(screen.queryByRole('link', { name: 'Обложки на паспорт' })).toBeNull(),
+  );
+  expect(calls.filter((call) => call.endpoint === '/shop/admin/categories/keychains')).toHaveLength(
+    0,
+  );
+});
+
+test('server deletion conflicts stay visible in the category dialog and keep its name', async () => {
+  start('/admin/shop', { owner: true, failCategoryDelete: true });
+  const button = await screen.findByRole('button', {
+    name: 'Удалить категорию: Обложки на паспорт',
+  });
+  await waitFor(() => expect(button.disabled).toBe(false));
+  fireEvent.click(button);
+  const dialog = screen.getByRole('dialog', { name: 'Удалить категорию?' });
+  fireEvent.click(within(dialog).getByRole('button', { name: 'Удалить категорию' }));
+  expect((await within(dialog).findByRole('alert')).textContent).toContain(
+    'В категории есть изделия',
+  );
+  expect(within(dialog).getByText(/Пустая категория «Обложки на паспорт»/)).toBeTruthy();
+  expect(screen.getByRole('heading', { name: 'Обложки на паспорт' })).toBeTruthy();
+});
+
+test('duplicate category errors preserve the typed name for correction', async () => {
+  start('/admin/shop', { owner: true });
+  const dialog = await openCategoryEditor();
+  fireEvent.change(within(dialog).getByLabelText('Название категории'), {
+    target: { value: 'брелоки' },
+  });
+  fireEvent.click(within(dialog).getByRole('button', { name: 'Сохранить категорию' }));
+  await within(dialog).findByText('Категория с таким названием уже существует.');
+  expect(within(dialog).getByLabelText('Название категории').value).toBe('брелоки');
+});
+
+test('without categories the product form still defaults to no category and zero price', async () => {
+  start('/admin/shop', { owner: true, emptyCategories: true });
+  await screen.findByText('Категорий пока нет. Создайте первую подборку для своих изделий.');
+  fireEvent.click(screen.getByRole('button', { name: 'Новое изделие' }));
+  const dialog = screen.getByRole('dialog', { name: 'Новое изделие' });
+  expect(within(dialog).getByLabelText('Категория').value).toBe('');
+  expect(within(dialog).getByLabelText('Категория').required).toBe(false);
+  expect(within(dialog).getByLabelText('Цена, ₽').value).toBe('0');
+  expect(within(dialog).getByRole('option', { name: 'Без категории' })).toBeTruthy();
+});
 
 test('page scrollbar survives StrictMode, navigation and opening a store modal', async () => {
   const height = vi.spyOn(document.documentElement, 'scrollHeight', 'get');

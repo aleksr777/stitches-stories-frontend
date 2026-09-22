@@ -1,9 +1,11 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../features/auth/model/use-auth';
 import { DocumentButton } from './legal';
+import { useStore } from './context';
 
 const StoreFooter = ({ openDialog }: { openDialog: (name: string) => void }) => {
   const { role } = useAuth();
+  const { categories } = useStore();
   return (
     <footer className="footer">
       <div className="container footer-grid">
@@ -24,8 +26,11 @@ const StoreFooter = ({ openDialog }: { openDialog: (name: string) => void }) => 
         <div>
           <h3>Магазин</h3>
           <Link to="/catalog">Коллекция</Link>
-          <Link to="/catalog?category=keychains">Брелоки</Link>
-          <Link to="/catalog?category=covers">Обложки на паспорт</Link>
+          {categories.map((category) => (
+            <Link key={category.id} to={'/catalog?category=' + encodeURIComponent(category.id)}>
+              {category.name}
+            </Link>
+          ))}
         </div>
         <div>
           <h3>Покупателям</h3>

@@ -78,6 +78,8 @@ const start = (
           headers: { 'Content-Type': 'image/png' },
         });
       if (['/shop/products', '/shop/admin/products'].includes(endpoint)) return response(products);
+      if (['/shop/categories', '/shop/admin/categories'].includes(endpoint))
+        return response([{ id: 'keychains', name: 'Брелоки', productCount: products.length }]);
       if (endpoint === '/shop/me/consents') return response({ marketing: false });
       if (
         [

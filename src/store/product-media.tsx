@@ -23,7 +23,7 @@ export const ProductImage = ({
       onError={() => setFailed(url)}
     />
   ) : (
-    <div className={'photo-placeholder ' + product.category}>
+    <div className={'photo-placeholder ' + (product.category ?? '')}>
       <Icon name="camera" />
       <span>{url ? 'Фотография временно недоступна' : 'Здесь будет фотография изделия'}</span>
     </div>

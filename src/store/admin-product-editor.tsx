@@ -3,17 +3,18 @@ import AdminProductFields from './admin-product-fields';
 import { buildProductUpload } from './admin-product-upload';
 import Modal from './modal';
 import ProductImageEditor, { type EditableProductImage } from './product-image-editor';
-import type { Product } from './types';
+import type { Category, Product } from './types';
 
 type Props = {
   product: Product;
+  categories: Category[];
   busy: boolean;
   error: string;
   close: () => void;
   save: (upload: FormData) => Promise<boolean>;
 };
 
-const AdminProductEditor = ({ product, busy, error, close, save }: Props) => {
+const AdminProductEditor = ({ product, categories, busy, error, close, save }: Props) => {
   const [images, setImages] = useState<EditableProductImage[]>(
     product.images.map((path) => ({ key: path, path })),
   );
@@ -40,7 +41,7 @@ const AdminProductEditor = ({ product, busy, error, close, save }: Props) => {
     >
       <form className="form product-editor-form" onSubmit={(event) => void submit(event)}>
         <fieldset className="product-editor-fields" disabled={busy}>
-          <AdminProductFields product={product} />
+          <AdminProductFields product={product} categories={categories} />
           <ProductImageEditor
             images={images}
             onChange={setImages}
