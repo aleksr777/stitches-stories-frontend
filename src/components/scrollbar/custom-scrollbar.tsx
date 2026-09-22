@@ -30,7 +30,7 @@ const CustomScrollbar = () => {
     dragRef.current = {
       pointerId: event.pointerId,
       startY: event.clientY,
-      startScrollY: (document.scrollingElement ?? document.documentElement).scrollTop,
+      startScrollY: Math.max(window.scrollY, 0),
     };
     event.currentTarget.setPointerCapture(event.pointerId);
   };
