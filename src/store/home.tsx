@@ -26,8 +26,12 @@ const Home = () => {
         </div>
         <img
           className="hero-image"
-          src={import.meta.env.BASE_URL + 'embroidery-hoop.svg'}
-          alt="Stitches & Stories — Стежки и истории. Игла с нитью, веточки и сердце."
+          src={import.meta.env.BASE_URL + 'stitches-stories-hero.webp'}
+          width={1440}
+          height={810}
+          fetchPriority="high"
+          decoding="async"
+          alt="Stitches & Stories — Стежки и истории. Игла с нитью, веточка и сердце."
         />
       </section>
       <section className="collection container">
