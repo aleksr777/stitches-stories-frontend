@@ -27,7 +27,7 @@ const Home = () => {
         <img
           className="hero-image"
           src={import.meta.env.BASE_URL + 'embroidery-hoop.svg'}
-          alt="Пяльцы и ниточка — символ мастерской Stitches & Stories"
+          alt="Stitches & Stories — Стежки и истории. Игла с нитью, веточки и сердце."
         />
       </section>
       <section className="collection container">
