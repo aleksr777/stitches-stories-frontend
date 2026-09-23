@@ -10,7 +10,7 @@ const Home = () => {
     <>
       <section className="hero container">
         <div className="hero-copy">
-          <p className="eyebrow">Создано руками. Выбрано сердцем.</p>
+          <p className="eyebrow">Создано с заботой. Выбрано сердцем.</p>
           <h1>
             Маленькие вещи.
             <br />
@@ -22,7 +22,7 @@ const Home = () => {
           <Link className="button" to="/catalog">
             Найти свою историю
           </Link>
-          <p className="tiny">Ручная вышивка / Внимание к каждой детали</p>
+          <p className="tiny">Вышивка с характером / Внимание к каждой детали</p>
         </div>
         <img
           className="hero-image"
