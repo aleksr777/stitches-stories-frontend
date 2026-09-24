@@ -20,6 +20,7 @@ import UserManagementDetails from './pages/admin/user-management-details';
 import UserManagementSessions from './pages/admin/user-management-sessions';
 import BlockedAccount from './pages/blocked-account/blocked-account';
 import ForbiddenPage from './pages/forbidden/forbidden';
+import PaymentPage, { PaymentReturn } from './store/payment-page';
 const App = () => (
   <StoreProvider>
     <Routes>
@@ -29,6 +30,8 @@ const App = () => (
         <Route path="products/:slug" element={<ProductPage />} />
         <Route path="cart" element={<Checkout />} />
         <Route path="checkout" element={<Checkout />} />
+        <Route path="payment/result" element={<PaymentReturn />} />
+        <Route path="payment/:id" element={<PaymentPage />} />
         <Route path="about" element={<About />} />
         <Route path="delivery" element={<Delivery />} />
         <Route path="documents" element={<DocumentsPage />} />

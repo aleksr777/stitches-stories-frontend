@@ -1,13 +1,16 @@
 import { money, statusNames, type OrderRequest } from './types';
+import { paymentStatusNames } from './payment-types';
 
 const AdminOrdersSection = ({
   orders,
   busy,
   onStatus,
+  onPayment,
 }: {
   orders: OrderRequest[];
   busy: boolean;
   onStatus: (id: string, value: string) => void;
+  onPayment: (order: OrderRequest) => void;
 }) => (
   <section className="panel">
     <h2>Последние заявки</h2>
@@ -44,6 +47,21 @@ const AdminOrdersSection = ({
               ))}
             </select>
           </label>
+          {order.payment && (
+            <p>
+              {order.payment.isTest && 'Тест · '}
+              {paymentStatusNames[order.payment.status]} · {money(order.payment.amountRub)}
+            </p>
+          )}
+          <p>
+            <button
+              className="button secondary"
+              disabled={busy || (order.status !== 'agreed' && !order.payment)}
+              onClick={() => onPayment(order)}
+            >
+              {order.payment ? 'Открыть счёт СБП' : 'Подготовить оплату СБП'}
+            </button>
+          </p>
         </article>
       ))
     ) : (

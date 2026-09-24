@@ -27,7 +27,7 @@ const buildContentSecurityPolicy = (apiOrigin: string, production: boolean): str
     `connect-src 'self' ${apiOrigin}${developmentSockets}`,
     "object-src 'none'",
     "base-uri 'self'",
-    "form-action 'self'",
+    "form-action 'self' https://auth.robokassa.ru",
   ].join('; ');
 };
 

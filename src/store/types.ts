@@ -35,6 +35,7 @@ export type Receipt = {
   createdAt: string;
 };
 export type OrderRequest = Receipt & {
+  payment?: import('./payment-types').PaymentSummary | null;
   name: string;
   email: string;
   city: string;

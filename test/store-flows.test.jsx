@@ -4,6 +4,7 @@ import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { beforeEach, expect, test, vi } from 'vitest';
 import App from '../src/app';
 import AuthProvider from '../src/features/auth/model/auth-provider';
+import { startPaymentFlow, guestToken, invoiceId } from './payment-fixture';
 
 const id = '11111111-1111-4111-8111-111111111111';
 const product = {
@@ -213,6 +214,73 @@ const start = (
   return { calls, router };
 };
 beforeEach(() => localStorage.clear());
+
+test('guest reviews archived terms and pays the server amount through SBP, then sees verified status', async () => {
+  const flow = startPaymentFlow({ failStart: true });
+  await screen.findByText('Тестовая оплата. Настоящие деньги не списываются.');
+  const checkbox = screen.getByRole('checkbox', { name: /Я принимаю условия покупки и оплаты/ });
+  expect(checkbox.checked).toBe(false);
+  expect(screen.getByRole('button', { name: 'Продолжить к оплате' }).disabled).toBe(true);
+  fireEvent.click(screen.getByRole('button', { name: 'payment' }));
+  const dialog = await screen.findByRole('dialog', { name: 'payment' });
+  expect(within(dialog).getByText('Условия именно этого счёта.')).toBeTruthy();
+  fireEvent.click(within(dialog).getByRole('button', { name: 'Закрыть документ' }));
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+  fireEvent.click(checkbox);
+  fireEvent.click(screen.getByRole('button', { name: 'Продолжить к оплате' }));
+  await screen.findByText('Попробуйте ещё раз');
+  expect(checkbox.checked).toBe(true);
+  fireEvent.click(screen.getByRole('button', { name: 'Продолжить к оплате' }));
+  const button = await screen.findByRole('button', { name: 'Оплатить через СБП' });
+  const form = button.closest('form');
+  expect(form.action).toBe('https://auth.robokassa.ru/Merchant/Index.aspx');
+  expect(form.method).toBe('post');
+  expect(new FormData(form).get('OutSum')).toBe('1500.00');
+  const start = flow.calls.find((call) => call.endpoint.endsWith('/start'));
+  expect(start.body.accessToken).toBe(guestToken);
+  expect(start.body.documents).toHaveLength(4);
+  expect(start.body).not.toHaveProperty('amountRub');
+  expect(JSON.stringify(localStorage)).not.toContain(guestToken);
+  flow.paid();
+  fireEvent.click(screen.getByRole('button', { name: 'Проверить оплату' }));
+  await screen.findByText('Тестовый платёж подтверждён.');
+  expect(screen.queryByRole('button', { name: 'Оплатить через СБП' })).toBeNull();
+});
+
+test('owner cannot start payment or accept purchase terms', async () => {
+  const flow = startPaymentFlow({ owner: true });
+  await screen.findByRole('link', { name: 'К управлению магазином' });
+  expect(screen.getByRole('button', { name: 'Оплатить через СБП' }).disabled).toBe(true);
+  expect(screen.queryByRole('checkbox')).toBeNull();
+  expect(flow.calls.some((call) => call.endpoint.startsWith('/shop/payments/'))).toBe(false);
+});
+
+test('owner issues an agreed invoice and receives a private customer link without signing documents', async () => {
+  const flow = startPaymentFlow({ owner: true, path: '/admin/shop' });
+  fireEvent.click(await screen.findByRole('button', { name: 'Подготовить оплату СБП' }));
+  const dialog = await screen.findByRole('dialog', { name: /Оплата заявки/ });
+  const conditions = await within(dialog).findByLabelText('Согласованные условия и сроки');
+  expect(within(dialog).queryByRole('checkbox')).toBeNull();
+  fireEvent.change(conditions, { target: { value: 'Изготовление 5 дней, доставка согласована.' } });
+  fireEvent.change(within(dialog).getByLabelText('Доставка, ₽'), { target: { value: '300' } });
+  fireEvent.click(within(dialog).getByRole('button', { name: 'Выставить счёт СБП' }));
+  const link = await within(dialog).findByLabelText('Ссылка для покупателя');
+  expect(link.value).toContain('/payment/' + invoiceId + '#token=');
+  const issue = flow.calls.find(
+    (call) => call.endpoint.endsWith('/payment') && call.method === 'POST',
+  );
+  expect(issue.body).toEqual({
+    deliveryRub: 300,
+    fulfillment: 'Изготовление 5 дней, доставка согласована.',
+  });
+});
+
+test('return URL alone never claims that a payment succeeded', async () => {
+  const flow = startPaymentFlow({ path: '/payment/result?OutSum=1500&InvId=123&IsTest=0' });
+  await screen.findByRole('heading', { name: 'Вернитесь к вашему заказу' });
+  expect(screen.queryByText('Оплата получена')).toBeNull();
+  expect(flow.calls.some((call) => call.endpoint.includes('/shop/payments/'))).toBe(false);
+});
 
 const openCategoryEditor = async () => {
   const button = await screen.findByRole('button', { name: 'Новая категория' });

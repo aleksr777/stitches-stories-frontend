@@ -8,12 +8,14 @@ The Vite build injects a browser-enforced CSP meta policy into `index.html`. In 
 
 GitHub Pages does not allow this repository to configure arbitrary HTTP response headers, so the meta policy provides the strongest portable baseline available on the current static host.
 
+Payment forms may POST only to the site itself or `https://auth.robokassa.ru`. Robokassa scripts and iframe embeds are not enabled. A custom CSP response header must allow this same form destination; otherwise the browser blocks SBP checkout.
+
 For production hosting under your own reverse proxy or a provider that supports custom response headers, prefer sending CSP as an HTTP response header.
 
 Recommended additional response headers for production hosting:
 
 ```text
-Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://api.example.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
+Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://api.example.com; font-src 'self'; connect-src 'self' https://api.example.com; object-src 'none'; base-uri 'self'; form-action 'self' https://auth.robokassa.ru; frame-ancestors 'none'
 Referrer-Policy: strict-origin-when-cross-origin
 Permissions-Policy: camera=(), microphone=(), geolocation=()
 X-Content-Type-Options: nosniff

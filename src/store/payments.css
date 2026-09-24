@@ -1,0 +1,69 @@
+.payment-page {
+  overflow-wrap: anywhere;
+}
+
+.payment-items {
+  list-style: none;
+  padding: 0;
+  margin: 1.5rem 0;
+}
+
+.payment-items li,
+.payment-total {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.payment-items li {
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.payment-items strong,
+.payment-total strong {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.payment-total {
+  font-size: 1.4rem;
+}
+
+.payment-status {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.payment-fulfillment {
+  white-space: pre-wrap;
+}
+
+.payment-documents,
+.payment-actions {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.payment-documents {
+  justify-items: start;
+}
+
+.payment-actions .button {
+  width: 100%;
+}
+
+.payment-link {
+  width: 100%;
+  min-height: 6rem;
+  overflow-wrap: anywhere;
+  resize: vertical;
+}
+
+@media (width <= 420px) {
+  .payment-items li {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+}

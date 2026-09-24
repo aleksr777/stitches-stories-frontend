@@ -1,4 +1,6 @@
 import { DocumentButton } from './legal';
+import { Link } from 'react-router-dom';
+import { paymentStatusNames } from './payment-types';
 import type { ConsentEvent } from './profile-types';
 import { money, statusNames, type OrderRequest } from './types';
 
@@ -26,6 +28,15 @@ const ProfileCustomer = ({ orders, marketing, events, busy, withdraw, openDialog
             <p>
               {money(order.subtotalRub)} · {new Date(order.createdAt).toLocaleDateString('ru-RU')}
             </p>
+            {order.payment && (
+              <p>
+                {order.payment.isTest && 'Тест · '}
+                {paymentStatusNames[order.payment.status]} ·{' '}
+                <Link className="text-link" to={'/payment/' + order.payment.id}>
+                  Открыть счёт
+                </Link>
+              </p>
+            )}
           </article>
         ))
       ) : (

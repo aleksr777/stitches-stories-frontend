@@ -5,13 +5,15 @@ import AdminProductsSection from './admin-products-section';
 import AdminOrdersSection from './admin-orders-section';
 import AdminRemoveDialog from './admin-remove-dialog';
 import AdminCategoriesSection from './admin-categories-section';
-import type { Product } from './types';
+import type { Product, OrderRequest } from './types';
+import AdminPaymentDialog from './admin-payment-dialog';
 import { useAdminData } from './use-admin-data';
 
 const Admin = () => {
   const data = useAdminData();
   const [editing, setEditing] = useState<Product | null>(null);
   const [removing, setRemoving] = useState<Product | null>(null);
+  const [payment, setPayment] = useState<OrderRequest | null>(null);
 
   return (
     <section className="page">
@@ -54,7 +56,11 @@ const Admin = () => {
         orders={data.orders}
         busy={data.busy}
         onStatus={(id, value) => void data.updateStatus(id, value)}
+        onPayment={setPayment}
       />
+      {payment && (
+        <AdminPaymentDialog order={payment} close={() => setPayment(null)} updated={data.reload} />
+      )}
       {editing && (
         <AdminProductEditor
           key={editing.id || 'new'}
