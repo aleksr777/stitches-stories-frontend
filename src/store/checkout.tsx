@@ -39,7 +39,7 @@ const Checkout = () => {
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (busy || !offer || unavailable || isOwner || roleIsLoading) return;
+    if (!isAuth || busy || !offer || unavailable || isOwner || roleIsLoading) return;
     const form = new FormData(event.currentTarget);
     if (!form.get('offer')) return;
     const payload = {
@@ -62,7 +62,7 @@ const Checkout = () => {
     try {
       const result = await apiRequest<Receipt>('/shop/requests', {
         method: 'POST',
-        auth: isAuth ? 'access' : 'none',
+        auth: 'access',
         body: JSON.stringify({ ...payload, requestKey: attempt.current.key }),
       });
       setReceipt(result);

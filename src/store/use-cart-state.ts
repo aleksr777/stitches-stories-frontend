@@ -4,17 +4,20 @@ import { readCart, saveCart } from './cart-storage';
 import type { Product } from './types';
 
 export const useCartState = (products: Product[]) => {
-  const { isAuth, role } = useAuth();
+  const { isAuth, isInitializing, role } = useAuth();
   const [cart, setCart] = useState(readCart);
+  const isCustomer = isAuth && role === 'user';
 
-  useEffect(() => saveCart(cart), [cart]);
   useEffect(() => {
-    if (role === 'admin') setCart([]);
-  }, [role]);
+    if (!isInitializing && !isCustomer) setCart([]);
+  }, [isCustomer, isInitializing]);
+  useEffect(() => {
+    if (!isInitializing) saveCart(isCustomer ? cart : []);
+  }, [cart, isCustomer, isInitializing]);
 
   const setQuantity = useCallback(
     (id: string, quantity: number) => {
-      if (role === 'admin' || (isAuth && role === null)) return;
+      if (!isCustomer) return;
       setCart((items) => {
         const filtered = items.filter((item) => item.productId !== id);
         if (quantity <= 0) return filtered;
@@ -24,13 +27,13 @@ export const useCartState = (products: Product[]) => {
         ];
       });
     },
-    [isAuth, role],
+    [isCustomer],
   );
 
   const add = useCallback(
     (id: string) => {
+      if (!isCustomer) return;
       setCart((items) => {
-        if (role === 'admin' || (isAuth && role === null)) return items;
         const product = products.find((value) => value.id === id);
         if (!product || product.stock < 1) return items;
         const existing = items.find((item) => item.productId === id);
@@ -42,7 +45,7 @@ export const useCartState = (products: Product[]) => {
         );
       });
     },
-    [isAuth, products, role],
+    [isCustomer, products],
   );
 
   return {

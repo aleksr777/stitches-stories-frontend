@@ -35,13 +35,7 @@ const PaymentPage = () => {
             <div className="panel">
               <PaymentDetails invoice={data.invoice} />
               <PaymentTerms documents={data.invoice.documents} />
-              <PaymentActions
-                key={data.invoice.id}
-                invoice={data.invoice}
-                accessToken={data.accessToken}
-                auth={data.auth}
-                refresh={data.refresh}
-              />
+              <PaymentActions key={data.invoice.id} invoice={data.invoice} refresh={data.refresh} />
             </div>
           )}
         </>

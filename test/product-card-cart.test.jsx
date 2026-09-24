@@ -24,10 +24,10 @@ const product = {
 };
 
 const auth = {
-  isAuth: false,
+  isAuth: true,
   isInitializing: false,
   isEndingSession: false,
-  role: null,
+  role: 'user',
   login: vi.fn(),
   confirmAdminLogin: vi.fn(),
   resendAdminLogin: vi.fn(),

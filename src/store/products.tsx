@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { createAuthReturnState } from '../features/auth/model/auth-return-location';
 import { useAuth } from '../features/auth/model/use-auth';
 import { useStore } from './context';
 import { ProductGallery } from './product-media';
@@ -13,10 +14,21 @@ export const ProductPage = () => {
   const { slug } = useParams();
   const { products, add, loading } = useStore();
   const { isAuth, role } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
   const [added, setAdded] = useState(false);
   const isOwner = role === 'admin';
   const roleIsLoading = isAuth && role === null;
   const product = products.find((value) => value.slug === slug);
+
+  const requestSignIn = () => {
+    const params = new URLSearchParams(location.search);
+    params.set('auth', 'login');
+    navigate(
+      { pathname: location.pathname, search: '?' + params.toString() },
+      { state: createAuthReturnState(location) },
+    );
+  };
 
   if (loading)
     return (
@@ -63,13 +75,17 @@ export const ProductPage = () => {
             disabled={!product.stock || isOwner || roleIsLoading}
             onClick={() => {
               if (isOwner || roleIsLoading) return;
+              if (!isAuth) {
+                requestSignIn();
+                return;
+              }
               add(product.id);
               setAdded(true);
             }}
           >
             {product.stock ? 'Добавить в корзину' : 'Сейчас недоступно'}
           </button>
-          {added && !isOwner && !roleIsLoading && (
+          {added && isAuth && !isOwner && !roleIsLoading && (
             <p role="status">
               Добавлено.{' '}
               <Link className="text-link" to="/cart">

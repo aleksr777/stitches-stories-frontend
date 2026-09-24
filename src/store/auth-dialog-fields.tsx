@@ -71,7 +71,7 @@ const AuthDialogFields = ({ state }: { state: DialogState }) => (
         />
         <Acceptance id="account-terms" label="Принимаю условия личного кабинета." />
         <p className="muted">
-          Регистрация необязательна для покупки.{' '}
+          Для избранного, корзины, заявки и оплаты счёта нужен аккаунт.{' '}
           <DocumentButton id="privacy">Политика обработки данных</DocumentButton>
         </p>
       </>

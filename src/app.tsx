@@ -28,10 +28,7 @@ const App = () => (
         <Route index element={<Home />} />
         <Route path="catalog" element={<Catalog />} />
         <Route path="products/:slug" element={<ProductPage />} />
-        <Route path="cart" element={<Checkout />} />
-        <Route path="checkout" element={<Checkout />} />
         <Route path="payment/result" element={<PaymentReturn />} />
-        <Route path="payment/:id" element={<PaymentPage />} />
         <Route path="about" element={<About />} />
         <Route path="delivery" element={<Delivery />} />
         <Route path="documents" element={<DocumentsPage />} />
@@ -41,6 +38,9 @@ const App = () => (
         <Route path="forbidden" element={<ForbiddenPage />} />
         <Route element={<ProtectedRoute />}>
           <Route path="users/me" element={<Profile />} />
+          <Route path="payment/:id" element={<PaymentPage />} />
+          <Route path="cart" element={<Checkout />} />
+          <Route path="checkout" element={<Checkout />} />
           <Route element={<CustomerRoute />}>
             <Route path="favorites" element={<Catalog favoritesOnly />} />
           </Route>

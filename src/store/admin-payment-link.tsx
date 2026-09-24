@@ -33,11 +33,12 @@ const AdminPaymentLink = ({
       <p className="payment-fulfillment">{invoice.fulfillment}</p>
       <p>Действует до {new Date(invoice.expiresAt).toLocaleString('ru-RU')}.</p>
       <label>
-        Ссылка для покупателя
+        Ссылка на счёт
         <textarea ref={input} className="payment-link" readOnly value={invoice.paymentUrl ?? ''} />
       </label>
       <p className="tiny">
-        Передайте ссылку только покупателю: она открывает сведения о его заказе.
+        Покупатель откроет счёт после входа в свой аккаунт. Сведения доступны только владельцу
+        заявки.
       </p>
       <div className="payment-actions">
         <button className="button" onClick={() => void copy()}>

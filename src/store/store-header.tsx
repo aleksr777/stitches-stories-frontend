@@ -14,6 +14,7 @@ const StoreHeader = ({ menu, setMenu, openAuth }: Props) => {
   const { isAuth, isInitializing, role } = useAuth();
   const { cart } = useStore();
   const location = useLocation();
+  const isCustomer = isAuth && role === 'user';
   const favoriteUnavailable = isAuth && role !== 'user';
   const cartUnavailable = isAuth && role !== 'user';
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
@@ -64,11 +65,12 @@ const StoreHeader = ({ menu, setMenu, openAuth }: Props) => {
           ) : (
             <Link
               className="icon-button bag"
-              to="/cart"
-              aria-label={'Корзина, изделий: ' + cartCount}
+              to={isAuth ? '/cart' : '?auth=login'}
+              state={isAuth ? undefined : createAuthReturnState(location)}
+              aria-label={isCustomer ? 'Корзина, изделий: ' + cartCount : 'Корзина'}
             >
               <Icon name="bag" />
-              {cart.length > 0 && <span>{cartCount}</span>}
+              {isCustomer && cart.length > 0 && <span>{cartCount}</span>}
             </Link>
           )}
           {isAuth ? (

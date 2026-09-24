@@ -5,11 +5,9 @@ import type { PaymentInvoice, PaymentForm } from './payment-types';
 
 type Props = {
   invoice: PaymentInvoice;
-  accessToken?: string;
-  auth: 'access' | 'none';
   refresh: () => void;
 };
-const PaymentActions = ({ invoice, accessToken, auth, refresh }: Props) => {
+const PaymentActions = ({ invoice, refresh }: Props) => {
   const [accepted, setAccepted] = useState(false);
   const [form, setForm] = useState<PaymentForm | null>(null);
   const [busy, setBusy] = useState(false);
@@ -21,8 +19,8 @@ const PaymentActions = ({ invoice, accessToken, auth, refresh }: Props) => {
     try {
       const result = await apiRequest<PaymentForm>('/shop/payments/' + invoice.id + '/start', {
         method: 'POST',
-        auth,
-        body: JSON.stringify({ accessToken, documents: invoice.documents.map(documentRef) }),
+        auth: 'access',
+        body: JSON.stringify({ documents: invoice.documents.map(documentRef) }),
       });
       if (result.action !== 'https://auth.robokassa.ru/Merchant/Index.aspx')
         throw new Error('Не удалось открыть оплату.');

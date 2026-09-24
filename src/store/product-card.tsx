@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { createAuthReturnState } from '../features/auth/model/auth-return-location';
 import { useAuth } from '../features/auth/model/use-auth';
 import { useStore } from './context';
 import Icon from './icons';
@@ -12,16 +13,26 @@ const ProductCard = ({ product }: { product: Product }) => {
   const { cart, categories, favorites, add, setQuantity, toggleFavorite } = useStore();
   const { isAuth, role } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const isOwner = role === 'admin';
   const roleIsLoading = isAuth && role === null;
   const quantity = cart.find((item) => item.productId === product.id)?.quantity ?? 0;
 
+  const requestSignIn = () => {
+    const params = new URLSearchParams(location.search);
+    params.set('auth', 'login');
+    navigate(
+      { pathname: location.pathname, search: '?' + params.toString() },
+      { state: createAuthReturnState(location) },
+    );
+  };
+
   const favorite = async () => {
     if (isOwner || roleIsLoading) return;
     if (!isAuth) {
-      navigate('?auth=login');
+      requestSignIn();
       return;
     }
     try {
@@ -32,6 +43,22 @@ const ProductCard = ({ product }: { product: Product }) => {
     } finally {
       setBusy(false);
     }
+  };
+
+  const addToCart = (id: string) => {
+    if (!isAuth) {
+      requestSignIn();
+      return;
+    }
+    add(id);
+  };
+
+  const changeQuantity = (id: string, nextQuantity: number) => {
+    if (!isAuth) {
+      requestSignIn();
+      return;
+    }
+    setQuantity(id, nextQuantity);
   };
 
   return (
@@ -64,8 +91,8 @@ const ProductCard = ({ product }: { product: Product }) => {
           product={product}
           quantity={quantity}
           disabled={isOwner || roleIsLoading}
-          add={add}
-          setQuantity={setQuantity}
+          add={addToCart}
+          setQuantity={changeQuantity}
         />
         {error && <p role="alert">{error}</p>}
       </div>

@@ -4,7 +4,7 @@ import { createMemoryRouter, RouterProvider } from 'react-router-dom';
 import { beforeEach, expect, test, vi } from 'vitest';
 import App from '../src/app';
 import AuthProvider from '../src/features/auth/model/auth-provider';
-import { startPaymentFlow, guestToken, invoiceId } from './payment-fixture';
+import { startPaymentFlow, invoiceId } from './payment-fixture';
 
 const id = '11111111-1111-4111-8111-111111111111';
 const product = {
@@ -49,6 +49,7 @@ const start = (
     failOrder = false,
     strictMode = false,
     owner = false,
+    customer = false,
     failCategoryDelete = false,
     emptyCategories = false,
   } = {},
@@ -80,7 +81,7 @@ const start = (
             : null;
       calls.push({ endpoint, body, headers: options.headers });
       if (endpoint === '/auth/refresh-tokens')
-        return owner ? response(tokens) : response({ message: 'No session' }, 401);
+        return owner || customer ? response(tokens) : response({ message: 'No session' }, 401);
       if (['/shop/products', '/shop/admin/products'].includes(endpoint)) {
         if (options.method === 'POST') {
           products = [...products, { ...body, id: 'new-product' }];
@@ -162,7 +163,7 @@ const start = (
         });
       }
       if (endpoint === '/auth/session')
-        return new Response(null, { status: authenticated || owner ? 204 : 401 });
+        return new Response(null, { status: authenticated || owner || customer ? 204 : 401 });
       if (endpoint === '/users/me')
         return response({
           id: 1,
@@ -215,7 +216,7 @@ const start = (
 };
 beforeEach(() => localStorage.clear());
 
-test('guest reviews archived terms and pays the server amount through SBP, then sees verified status', async () => {
+test('customer reviews archived terms and pays the server amount through SBP, then sees verified status', async () => {
   const flow = startPaymentFlow({ failStart: true });
   await screen.findByText('Тестовая оплата. Настоящие деньги не списываются.');
   const checkbox = screen.getByRole('checkbox', { name: /Я принимаю условия покупки и оплаты/ });
@@ -237,10 +238,9 @@ test('guest reviews archived terms and pays the server amount through SBP, then 
   expect(form.method).toBe('post');
   expect(new FormData(form).get('OutSum')).toBe('1500.00');
   const start = flow.calls.find((call) => call.endpoint.endsWith('/start'));
-  expect(start.body.accessToken).toBe(guestToken);
   expect(start.body.documents).toHaveLength(4);
   expect(start.body).not.toHaveProperty('amountRub');
-  expect(JSON.stringify(localStorage)).not.toContain(guestToken);
+  expect(start.headers.Authorization).toBe('Bearer customer-token');
   flow.paid();
   fireEvent.click(screen.getByRole('button', { name: 'Проверить оплату' }));
   await screen.findByText('Тестовый платёж подтверждён.');
@@ -255,7 +255,7 @@ test('owner cannot start payment or accept purchase terms', async () => {
   expect(flow.calls.some((call) => call.endpoint.startsWith('/shop/payments/'))).toBe(false);
 });
 
-test('owner issues an agreed invoice and receives a private customer link without signing documents', async () => {
+test('owner issues an agreed invoice and receives an account-only customer link without signing documents', async () => {
   const flow = startPaymentFlow({ owner: true, path: '/admin/shop' });
   fireEvent.click(await screen.findByRole('button', { name: 'Подготовить оплату СБП' }));
   const dialog = await screen.findByRole('dialog', { name: /Оплата заявки/ });
@@ -264,8 +264,8 @@ test('owner issues an agreed invoice and receives a private customer link withou
   fireEvent.change(conditions, { target: { value: 'Изготовление 5 дней, доставка согласована.' } });
   fireEvent.change(within(dialog).getByLabelText('Доставка, ₽'), { target: { value: '300' } });
   fireEvent.click(within(dialog).getByRole('button', { name: 'Выставить счёт СБП' }));
-  const link = await within(dialog).findByLabelText('Ссылка для покупателя');
-  expect(link.value).toContain('/payment/' + invoiceId + '#token=');
+  const link = await within(dialog).findByLabelText('Ссылка на счёт');
+  expect(link.value).toBe('https://shop.example.test/payment/' + invoiceId);
   const issue = flow.calls.find(
     (call) => call.endpoint.endsWith('/payment') && call.method === 'POST',
   );
@@ -280,6 +280,13 @@ test('return URL alone never claims that a payment succeeded', async () => {
   await screen.findByRole('heading', { name: 'Вернитесь к вашему заказу' });
   expect(screen.queryByText('Оплата получена')).toBeNull();
   expect(flow.calls.some((call) => call.endpoint.includes('/shop/payments/'))).toBe(false);
+});
+
+test('guest cannot open an invoice without signing in', async () => {
+  const flow = startPaymentFlow({ customer: false });
+  await screen.findByRole('dialog', { name: 'Рады видеть вас снова' });
+  expect(flow.router.state.location.pathname).toBe('/auth/login');
+  expect(flow.calls.some((call) => call.endpoint.startsWith('/shop/payments/'))).toBe(false);
 });
 
 const openCategoryEditor = async () => {
@@ -442,8 +449,8 @@ test('page scrollbar survives StrictMode, navigation and opening a store modal',
   await waitFor(() => expect(scrollbar.getAttribute('aria-valuenow')).toBe('50'));
 });
 
-test('product, cart and checkout keep guest data and retry the same request after server failure', async () => {
-  const { calls } = start('/products/quiet-garden', { failOrder: true });
+test('customer cart and checkout retry the same authenticated request after server failure', async () => {
+  const { calls } = start('/products/quiet-garden', { customer: true, failOrder: true });
   fireEvent.click(await screen.findByRole('button', { name: 'Добавить в корзину' }));
   fireEvent.click(screen.getByRole('link', { name: 'Перейти в корзину →' }));
   await screen.findByRole('heading', { name: 'Корзина и заявка' });
@@ -464,8 +471,36 @@ test('product, cart and checkout keep guest data and retry the same request afte
   expect(attempts).toHaveLength(2);
   expect(attempts[0].body).toEqual(attempts[1].body);
   expect(attempts[0].body.items[0].expectedPriceRub).toBe(1200);
-  expect(attempts[0].headers.Authorization).toBeUndefined();
+  expect(attempts[0].headers.Authorization).toBe('Bearer test-token');
   expect(JSON.parse(localStorage.getItem('ss-cart-v1'))).toEqual([]);
+});
+
+test('guest is asked to sign in before adding products, using favorites, or opening the cart', async () => {
+  localStorage.setItem('ss-cart-v1', JSON.stringify([{ productId: id, quantity: 1 }]));
+  const { calls, router } = start('/catalog');
+  await screen.findByRole('heading', { name: product.name });
+  await waitFor(() => expect(JSON.parse(localStorage.getItem('ss-cart-v1'))).toEqual([]));
+
+  fireEvent.click(screen.getByRole('button', { name: 'Добавить в корзину' }));
+  await screen.findByRole('dialog', { name: 'Рады видеть вас снова' });
+  expect(router.state.location.pathname).toBe('/catalog');
+  expect(router.state.location.search).toBe('?auth=login');
+  expect(screen.queryByLabelText(/Количество в корзине/)).toBeNull();
+
+  fireEvent(screen.getByRole('dialog'), new Event('cancel', { cancelable: true }));
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+  fireEvent.click(screen.getByRole('button', { name: 'В избранное: ' + product.name }));
+  await screen.findByRole('dialog', { name: 'Рады видеть вас снова' });
+  expect(calls.some((call) => call.endpoint === '/shop/me/favorites')).toBe(false);
+  expect(calls.some((call) => call.endpoint === '/shop/requests')).toBe(false);
+});
+
+test('guest is routed to sign in before the cart and cannot submit a request', async () => {
+  const { calls, router } = start('/cart');
+  await screen.findByRole('dialog', { name: 'Рады видеть вас снова' });
+  expect(router.state.location.pathname).toBe('/auth/login');
+  expect(screen.queryByRole('heading', { name: 'Корзина и заявка' })).toBeNull();
+  expect(calls.some((call) => call.endpoint === '/shop/requests')).toBe(false);
 });
 
 test('registration sends two distinct document references and returns to the safe public route', async () => {

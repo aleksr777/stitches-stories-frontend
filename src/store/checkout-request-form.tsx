@@ -45,7 +45,7 @@ const CheckoutRequestForm = ({
   return (
     <form className="form checkout-form" onSubmit={onSubmit}>
       <h2>Куда написать?</h2>
-      <p>Можно отправить заявку без регистрации.</p>
+      <p>Заявка сохранится в вашем профиле.</p>
       <label>
         Ваше имя
         <input name="name" autoComplete="name" required minLength={2} maxLength={200} />

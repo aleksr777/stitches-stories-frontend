@@ -5,7 +5,6 @@ import App from '../src/app';
 import AuthProvider from '../src/features/auth/model/auth-provider';
 
 export const invoiceId = '11111111-1111-4111-8111-111111111111';
-export const guestToken = 'b'.repeat(64);
 const docs = ['offer', 'payment', 'returns', 'seller'].map((id) => ({
   id,
   title: id,
@@ -34,13 +33,14 @@ export const invoiceFixture = {
   paidAt: null,
   canPay: true,
   documents: docs,
-  paymentUrl: 'https://shop.example.test/payment/' + invoiceId + '#token=' + guestToken,
+  paymentUrl: 'https://shop.example.test/payment/' + invoiceId,
 };
 const response = (data, status = 200) =>
   new Response(JSON.stringify(data), { status, headers: { 'Content-Type': 'application/json' } });
 export const startPaymentFlow = ({
   owner = false,
-  path = '/payment/' + invoiceId + '#token=' + guestToken,
+  customer = true,
+  path = '/payment/' + invoiceId,
   failStart = false,
 } = {}) => {
   const calls = [];
@@ -52,17 +52,23 @@ export const startPaymentFlow = ({
     vi.fn(async (url, options = {}) => {
       const endpoint = new URL(url).pathname.replace(/^\/api/, '');
       const body = options.body ? JSON.parse(options.body) : null;
-      calls.push({ endpoint, body, method: options.method });
+      calls.push({ endpoint, body, headers: options.headers, method: options.method });
       if (endpoint === '/auth/refresh-tokens')
-        return owner
+        return owner || customer
           ? response({
-              access_token: 'owner-token',
+              access_token: owner ? 'owner-token' : 'customer-token',
               access_token_expires: Date.now() / 1000 + 3600,
             })
           : response({}, 401);
       if (endpoint === '/users/me')
-        return response({ id: 1, name: 'Владелец', role: 'admin', email: 'owner@example.test' });
-      if (endpoint === '/auth/session') return new Response(null, { status: owner ? 204 : 401 });
+        return response({
+          id: 1,
+          name: owner ? 'Владелец' : 'Покупатель',
+          role: owner ? 'admin' : 'user',
+          email: owner ? 'owner@example.test' : 'buyer@example.test',
+        });
+      if (endpoint === '/auth/session')
+        return new Response(null, { status: owner || customer ? 204 : 401 });
       if (endpoint === '/legal/documents') return response(docs);
       if (
         [
