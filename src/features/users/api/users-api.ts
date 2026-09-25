@@ -15,7 +15,10 @@ export type CurrentUser = {
 };
 
 export type UpdateCurrentUserData = {
-  name?: string;
+  name?: string | null;
+  contact_email?: string | null;
+  phone_number?: string | null;
+  sex?: CurrentUser['sex'];
 };
 
 export const getCurrentUserRequest = async (): Promise<CurrentUser> => {

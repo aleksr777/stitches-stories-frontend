@@ -136,6 +136,7 @@ const start = (
 ) => {
   let authenticated = false;
   let failed = false;
+  let currentProfile = profile;
   const calls = [];
   let products = [product];
   let categories = emptyCategories
@@ -257,6 +258,19 @@ const start = (
       }
       if (endpoint === '/auth/session')
         return new Response(null, { status: authenticated || owner || customer ? 204 : 401 });
+      if (endpoint === '/users/me/partial-data/update' && options.method === 'PATCH') {
+        currentProfile = { ...currentProfile, ...body };
+        return response({
+          id: 1,
+          name: 'Надежда',
+          email: 'shopper@example.test',
+          role: owner ? 'admin' : 'user',
+          contact_email: null,
+          phone_number: null,
+          sex: null,
+          ...currentProfile,
+        });
+      }
       if (endpoint === '/users/me')
         return response({
           id: 1,
@@ -265,7 +279,8 @@ const start = (
           role: owner ? 'admin' : 'user',
           contact_email: null,
           phone_number: null,
-          ...profile,
+          sex: null,
+          ...currentProfile,
         });
       if (endpoint === '/shop/me/consents') return response({ marketing: false });
       if (
@@ -597,6 +612,45 @@ test('checkout prepopulates Yandex contact details and asks only for missing ord
     email: 'nadezhda@example.test',
     phone: '+79001234567',
   });
+});
+
+test('customer edits imported profile details and checkout uses the saved contact email', async () => {
+  const { calls, router } = start('/users/me/settings/profile', {
+    customer: true,
+    profile: {
+      name: 'Надежда Петрова',
+      email: 'login@example.test',
+      contact_email: 'old@example.test',
+      phone_number: '+79001234567',
+      sex: 'female',
+    },
+  });
+  await screen.findByRole('heading', { name: 'Мои данные' });
+  await waitFor(() =>
+    expect(screen.getByLabelText('Контактная почта').value).toBe('old@example.test'),
+  );
+  expect(screen.getByText(/Почта для входа: login@example.test/)).toBeTruthy();
+  fireEvent.change(screen.getByLabelText('Имя'), { target: { value: 'Надежда Иванова' } });
+  fireEvent.change(screen.getByLabelText('Контактная почта'), {
+    target: { value: 'new@example.test' },
+  });
+  fireEvent.change(screen.getByLabelText('Телефон'), { target: { value: '' } });
+  fireEvent.change(screen.getByLabelText('Пол'), { target: { value: '' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Сохранить изменения' }));
+  await screen.findByText('Профиль обновлён');
+  expect(calls.find((call) => call.endpoint === '/users/me/partial-data/update').body).toEqual({
+    name: 'Надежда Иванова',
+    contact_email: 'new@example.test',
+    phone_number: null,
+    sex: null,
+  });
+
+  await router.navigate('/products/quiet-garden');
+  fireEvent.click(await screen.findByRole('button', { name: 'Добавить в корзину' }));
+  fireEvent.click(screen.getByRole('link', { name: 'Перейти в корзину →' }));
+  await waitFor(() => expect(screen.getByLabelText('Ваше имя').value).toBe('Надежда Иванова'));
+  expect(screen.getByLabelText('Электронная почта').value).toBe('new@example.test');
+  expect(screen.getByLabelText(/Телефон/).value).toBe('');
 });
 
 test('an account without Yandex contact data can enter required details at checkout', async () => {

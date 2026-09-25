@@ -12,7 +12,7 @@ export const useCheckoutPrefill = (isAuth: boolean, role: UserRole | null) => {
         if (active)
           setPrefill({
             name: user.name ?? '',
-            email: user.email ?? user.contact_email ?? '',
+            email: user.contact_email ?? user.email ?? '',
             phone: user.phone_number ?? '',
           });
       })

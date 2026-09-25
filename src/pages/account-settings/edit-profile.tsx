@@ -7,12 +7,14 @@ import {
   type UpdateCurrentUserData,
 } from '../../features/users/api/users-api';
 import EditProfileForm from './edit-profile-form';
-import YandexProfileDetails from './yandex-profile-details';
 import styles from './account-settings.module.css';
 
 const EditProfile = () => {
   const [user, setUser] = useState<CurrentUser | null>(null);
   const [name, setName] = useState('');
+  const [contactEmail, setContactEmail] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [sex, setSex] = useState<NonNullable<CurrentUser['sex']> | ''>('');
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -21,6 +23,9 @@ const EditProfile = () => {
   const applyUser = (currentUser: CurrentUser) => {
     setUser(currentUser);
     setName(currentUser.name ?? '');
+    setContactEmail(currentUser.contact_email ?? '');
+    setPhoneNumber(currentUser.phone_number ?? '');
+    setSex(currentUser.sex ?? '');
   };
 
   useEffect(() => {
@@ -48,16 +53,19 @@ const EditProfile = () => {
     event.preventDefault();
     if (!user) return;
 
-    const nextName = name.trim();
+    const nextName = name.trim() || null;
+    const nextEmail = contactEmail.trim().toLowerCase() || null;
+    const nextPhone = phoneNumber.trim() || null;
+    const nextSex = sex || null;
     const patch: UpdateCurrentUserData = {};
 
-    if (nextName !== (user.name ?? '')) {
-      if (!nextName) return setError('Укажите имя');
-      patch.name = nextName;
-    }
+    if (nextName !== user.name) patch.name = nextName;
+    if (nextEmail !== user.contact_email) patch.contact_email = nextEmail;
+    if (nextPhone !== user.phone_number) patch.phone_number = nextPhone;
+    if (nextSex !== user.sex) patch.sex = nextSex;
     if (Object.keys(patch).length === 0) {
       setError(null);
-      setMessage('No changes to save');
+      setMessage('Нет изменений для сохранения');
       return;
     }
 
@@ -82,13 +90,19 @@ const EditProfile = () => {
       <h2 className={styles.title}>Мои данные</h2>
       <EditProfileForm
         name={name}
+        contactEmail={contactEmail}
+        phoneNumber={phoneNumber}
+        sex={sex}
+        loginEmail={user?.email ?? null}
         error={error}
         message={message}
         isSubmitting={isSubmitting}
         onNameChange={setName}
+        onContactEmailChange={setContactEmail}
+        onPhoneNumberChange={setPhoneNumber}
+        onSexChange={setSex}
         onSubmit={handleSubmit}
       />
-      <YandexProfileDetails user={user} />
       <Link className={styles.link} to="/users/me">
         Вернуться в профиль
       </Link>
