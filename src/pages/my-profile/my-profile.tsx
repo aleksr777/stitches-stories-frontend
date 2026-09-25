@@ -54,7 +54,6 @@ const MyProfile = () => {
       <h2 className={styles.title}>My profile</h2>
 
       <div className={styles.info}>
-        <span>Nickname: {user.nickname ?? 'No nickname'}</span>
         <span>Email: {user.email}</span>
         <span>Name: {user.name ?? '—'}</span>
         <span>Age: {user.age ?? '—'}</span>

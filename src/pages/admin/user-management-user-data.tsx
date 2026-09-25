@@ -11,7 +11,7 @@ const formatLastActivity = (value: string | null) => {
 
 const UserManagementUserData = ({ user }: UserManagementUserDataProps) => (
   <div className={styles.userData}>
-    <strong>{user.nickname ?? 'Без псевдонима'}</strong>
+    <strong>{user.name?.trim() || `Пользователь №${user.id}`}</strong>
     <span className="contact-text">Почта: {user.email ?? user.contact_email ?? 'не указана'}</span>
     {user.phone_number && <span>Телефон: {user.phone_number}</span>}
     <span>Имя: {user.name ?? '—'}</span>

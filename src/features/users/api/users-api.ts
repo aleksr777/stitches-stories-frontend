@@ -8,7 +8,6 @@ export type CurrentUser = {
   contact_email: string | null;
   phone_number: string | null;
   sex: 'male' | 'female' | null;
-  nickname: string | null;
   name: string | null;
   age: number | null;
   role: UserRole;
@@ -17,7 +16,6 @@ export type CurrentUser = {
 };
 
 export type UpdateCurrentUserData = {
-  nickname?: string;
   name?: string;
   age?: number;
 };

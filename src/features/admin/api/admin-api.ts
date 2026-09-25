@@ -8,7 +8,6 @@ export type AdminUser = {
   contact_email: string | null;
   phone_number: string | null;
   sex: 'male' | 'female' | null;
-  nickname: string | null;
   name: string | null;
   age: number | null;
   role: UserRole;

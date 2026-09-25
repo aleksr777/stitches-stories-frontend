@@ -12,7 +12,6 @@ import styles from './account-settings.module.css';
 
 const EditProfile = () => {
   const [user, setUser] = useState<CurrentUser | null>(null);
-  const [nickname, setNickname] = useState('');
   const [name, setName] = useState('');
   const [age, setAge] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -22,7 +21,6 @@ const EditProfile = () => {
 
   const applyUser = (currentUser: CurrentUser) => {
     setUser(currentUser);
-    setNickname(currentUser.nickname ?? '');
     setName(currentUser.name ?? '');
     setAge(currentUser.age === null ? '' : String(currentUser.age));
   };
@@ -52,15 +50,10 @@ const EditProfile = () => {
     event.preventDefault();
     if (!user) return;
 
-    const nextNickname = nickname.trim();
     const nextName = name.trim();
     const nextAge = age.trim();
     const patch: UpdateCurrentUserData = {};
 
-    if (nextNickname !== (user.nickname ?? '')) {
-      if (!nextNickname) return setError('Укажите псевдоним');
-      patch.nickname = nextNickname;
-    }
     if (nextName !== (user.name ?? '')) {
       if (!nextName) return setError('Укажите имя');
       patch.name = nextName;
@@ -100,13 +93,11 @@ const EditProfile = () => {
     <section className={styles.wrapper}>
       <h2 className={styles.title}>Мои данные</h2>
       <EditProfileForm
-        nickname={nickname}
         name={name}
         age={age}
         error={error}
         message={message}
         isSubmitting={isSubmitting}
-        onNicknameChange={setNickname}
         onNameChange={setName}
         onAgeChange={setAge}
         onSubmit={handleSubmit}

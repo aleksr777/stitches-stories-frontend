@@ -12,7 +12,7 @@ const Profile = () => {
   return (
     <section className="page">
       <p className="eyebrow">Ваш маленький уголок</p>
-      <h1>{user ? 'Здравствуйте, ' + (user.name ?? user.nickname ?? 'друг') : 'Личный кабинет'}</h1>
+      <h1>{user ? 'Здравствуйте, ' + (user.name || 'друг') : 'Личный кабинет'}</h1>
       {error && (
         <p role="alert" className="error">
           {error}
