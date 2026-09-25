@@ -132,11 +132,13 @@ const start = (
     socialRegistered = false,
     socialProvider = 'yandex',
     profile = {},
+    savedAddresses = [],
   } = {},
 ) => {
   let authenticated = false;
   let failed = false;
   let currentProfile = profile;
+  let addresses = [...savedAddresses];
   let pendingContactEmail;
   const calls = [];
   let products = [product];
@@ -298,6 +300,27 @@ const start = (
           sex: null,
           ...currentProfile,
         });
+      if (endpoint === '/shop/me/addresses') {
+        if (options.method === 'POST') {
+          const address = { ...body, id: crypto.randomUUID() };
+          addresses = [...addresses, address];
+          return response(address, 201);
+        }
+        return response(addresses);
+      }
+      if (endpoint.startsWith('/shop/me/addresses/')) {
+        const addressId = endpoint.split('/').at(-1);
+        if (options.method === 'PUT') {
+          addresses = addresses.map((address) =>
+            address.id === addressId ? { ...body, id: addressId } : address,
+          );
+          return response(addresses.find((address) => address.id === addressId));
+        }
+        if (options.method === 'DELETE') {
+          addresses = addresses.filter((address) => address.id !== addressId);
+          return response({ deleted: true });
+        }
+      }
       if (endpoint === '/shop/me/consents') return response({ marketing: false });
       if (
         [
@@ -313,6 +336,8 @@ const start = (
           failed = true;
           return response({ message: 'Сервис временно недоступен' }, 503);
         }
+        if (body.deliveryAddress && body.saveAddress)
+          addresses = [...addresses, { ...body.deliveryAddress, id: crypto.randomUUID() }];
         return response({
           id: 'request-id',
           number: 'REQ12345',
@@ -702,6 +727,82 @@ test('an account without Yandex contact data can enter required details at check
   expect(screen.getByLabelText('Ваше имя').required).toBe(true);
   expect(screen.getByLabelText('Электронная почта').required).toBe(true);
   expect(screen.getByLabelText(/Телефон/).required).toBe(false);
+});
+
+test('customer manages addresses in the profile and chooses one during checkout', async () => {
+  const { calls, router } = start('/users/me', { customer: true });
+  fireEvent.click(await screen.findByRole('button', { name: 'Добавить адрес' }));
+  fireEvent.change(screen.getByLabelText('Город или населённый пункт'), {
+    target: { value: 'Заречный' },
+  });
+  fireEvent.change(screen.getByLabelText('Улица'), { target: { value: 'Ленина' } });
+  fireEvent.change(screen.getByLabelText('Дом и корпус'), { target: { value: '12' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Сохранить адрес' }));
+  await screen.findByText(/ул\. Ленина, д\. 12/);
+  const created = calls.find((call) => call.endpoint === '/shop/me/addresses' && call.body);
+  expect(created.body).toMatchObject({ city: 'Заречный', street: 'Ленина', house: '12' });
+
+  fireEvent.click(screen.getByRole('button', { name: 'Изменить' }));
+  fireEvent.change(screen.getByLabelText('Дом и корпус'), { target: { value: '14' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Сохранить адрес' }));
+  await screen.findByText(/ул\. Ленина, д\. 14/);
+  expect(
+    calls.some(
+      (call) => call.endpoint.startsWith('/shop/me/addresses/') && call.body?.house === '14',
+    ),
+  ).toBe(true);
+
+  await router.navigate('/products/quiet-garden');
+  fireEvent.click(await screen.findByRole('button', { name: 'Добавить в корзину' }));
+  fireEvent.click(screen.getByRole('link', { name: 'Перейти в корзину →' }));
+  const select = await screen.findByRole('combobox', { name: 'Адрес доставки' });
+  await waitFor(() => expect(within(select).getByText(/ул\. Ленина, д\. 14/)).toBeTruthy());
+  fireEvent.change(select, {
+    target: {
+      value: select.querySelector('option[value]:not([value="later"]):not([value="new"])').value,
+    },
+  });
+  fireEvent.change(screen.getByLabelText('Ваше имя'), { target: { value: 'Надежда' } });
+  fireEvent.change(screen.getByLabelText('Электронная почта'), {
+    target: { value: 'buyer@example.test' },
+  });
+  fireEvent.click(screen.getByRole('checkbox', { name: /Принимаю условия/ }));
+  fireEvent.click(screen.getByRole('button', { name: 'Отправить заявку мастеру' }));
+  await screen.findByRole('heading', { name: 'Заявка отправлена' });
+  const order = calls.find((call) => call.endpoint === '/shop/requests').body;
+  expect(order.city).toBe('Заречный');
+  expect(order.addressId).toBe(select.value);
+  expect(order.deliveryAddress).toBeUndefined();
+});
+
+test('customer enters a new address at checkout and optionally saves it to the profile', async () => {
+  const { calls, router } = start('/products/quiet-garden', { customer: true });
+  fireEvent.click(await screen.findByRole('button', { name: 'Добавить в корзину' }));
+  fireEvent.click(screen.getByRole('link', { name: 'Перейти в корзину →' }));
+  fireEvent.change(await screen.findByRole('combobox', { name: 'Адрес доставки' }), {
+    target: { value: 'new' },
+  });
+  fireEvent.change(screen.getByLabelText('Ваше имя'), { target: { value: 'Надежда' } });
+  fireEvent.change(screen.getByLabelText('Электронная почта'), {
+    target: { value: 'buyer@example.test' },
+  });
+  fireEvent.change(screen.getByLabelText('Город или населённый пункт'), {
+    target: { value: 'Заречный' },
+  });
+  fireEvent.change(screen.getByLabelText('Улица'), { target: { value: 'Мира' } });
+  fireEvent.change(screen.getByLabelText('Дом и корпус'), { target: { value: '7' } });
+  fireEvent.click(screen.getByRole('checkbox', { name: /Сохранить адрес в профиле/ }));
+  fireEvent.click(screen.getByRole('checkbox', { name: /Принимаю условия/ }));
+  fireEvent.click(screen.getByRole('button', { name: 'Отправить заявку мастеру' }));
+  await screen.findByRole('heading', { name: 'Заявка отправлена' });
+  const body = calls.find((call) => call.endpoint === '/shop/requests').body;
+  expect(body.deliveryAddress).toMatchObject({ city: 'Заречный', street: 'Мира', house: '7' });
+  expect(body.saveAddress).toBe(true);
+  await router.navigate('/users/me');
+  await screen.findByText(/ул\. Мира, д\. 7/);
+  fireEvent.click(screen.getByRole('button', { name: 'Удалить' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Да, удалить' }));
+  await screen.findByText('Адресов пока нет.');
 });
 
 test('guest is asked to sign in before adding products, using favorites, or opening the cart', async () => {

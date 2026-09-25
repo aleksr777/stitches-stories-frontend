@@ -1,10 +1,14 @@
 import type { FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import CheckoutContactFields, { type CheckoutContact } from './checkout-contact-fields';
+import CheckoutAddressFields from './checkout-address-fields';
+import type { SavedAddress } from './delivery-address';
 import { Acceptance, DocumentButton } from './legal';
 
 type Props = {
   prefill: CheckoutContact | null;
+  addresses: SavedAddress[];
+  addressesError: string;
   isOwner: boolean;
   busy: boolean;
   disabled: boolean;
@@ -18,6 +22,8 @@ type Props = {
 
 const CheckoutRequestForm = ({
   prefill,
+  addresses,
+  addressesError,
   isOwner,
   busy,
   disabled,
@@ -50,6 +56,7 @@ const CheckoutRequestForm = ({
       <h2>Куда написать?</h2>
       <p>Заявка сохранится в вашем профиле.</p>
       <CheckoutContactFields prefill={prefill} />
+      <CheckoutAddressFields addresses={addresses} loadError={addressesError} />
       <label>
         Пожелания <small>по желанию</small>
         <textarea name="comment" rows={3} maxLength={1500} />

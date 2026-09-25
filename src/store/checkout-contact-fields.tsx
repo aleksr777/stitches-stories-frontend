@@ -39,10 +39,6 @@ const CheckoutContactFields = ({ prefill }: { prefill: CheckoutContact | null })
         />
       </label>
       <label>
-        Город
-        <input name="city" autoComplete="address-level2" required minLength={2} maxLength={150} />
-      </label>
-      <label>
         Телефон <small>по желанию</small>
         <input
           name="phone"

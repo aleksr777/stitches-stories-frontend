@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { paymentStatusNames } from './payment-types';
 import type { ConsentEvent } from './profile-types';
 import { money, statusNames, type OrderRequest } from './types';
+import { addressText } from './delivery-address';
+import ProfileAddresses from './profile-addresses';
 
 type Props = {
   orders: OrderRequest[];
@@ -15,6 +17,7 @@ type Props = {
 
 const ProfileCustomer = ({ orders, marketing, events, busy, withdraw, openDialog }: Props) => (
   <>
+    <ProfileAddresses />
     <section className="panel">
       <h2>Мои заявки</h2>
       {orders.length ? (
@@ -27,6 +30,12 @@ const ProfileCustomer = ({ orders, marketing, events, busy, withdraw, openDialog
             <p>{order.items.map((item) => item.name + ' × ' + item.quantity).join(', ')}</p>
             <p>
               {money(order.subtotalRub)} · {new Date(order.createdAt).toLocaleDateString('ru-RU')}
+            </p>
+            <p>
+              Доставка:{' '}
+              {order.deliveryAddress
+                ? addressText(order.deliveryAddress)
+                : `${order.city}, адрес уточняется`}
             </p>
             {order.payment && (
               <p>

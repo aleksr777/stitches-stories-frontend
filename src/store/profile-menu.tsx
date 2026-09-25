@@ -9,6 +9,7 @@ const ProfileMenu = ({ user, logout }: { user: CurrentUser; logout: () => Promis
     <p className="contact-text">{user.email ?? user.contact_email ?? 'Почта не указана'}</p>
     {user.role !== 'admin' && <Link to="/favorites">Избранное</Link>}
     <Link to="/users/me/settings/profile">Мои данные</Link>
+    {user.role !== 'admin' && <a href="#delivery-addresses">Адреса доставки</a>}
     <Link to="/users/me/settings/password">Сменить пароль</Link>
     <Link to="/users/me/settings/contact-email">Контактная почта</Link>
     {user.email && <Link to="/users/me/settings/email">Сменить почту для входа</Link>}

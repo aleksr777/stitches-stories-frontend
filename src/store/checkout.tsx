@@ -3,10 +3,12 @@ import { useAuth } from '../features/auth/model/use-auth';
 import { apiRequest } from '../shared/api/api-client';
 import CheckoutCart from './checkout-cart';
 import CheckoutRequestForm from './checkout-request-form';
+import { addressFromForm } from './delivery-address';
 import { CheckoutSuccess, EmptyCart, OwnerCartUnavailable } from './checkout-states';
 import { useStore } from './context';
 import { documentRef, type Receipt } from './types';
 import { useCheckoutPrefill } from './use-checkout-prefill';
+import { useCheckoutAddresses } from './use-checkout-addresses';
 
 const Checkout = () => {
   const { cart, products, documents, setQuantity, clearCart, retry, loading } = useStore();
@@ -15,6 +17,7 @@ const Checkout = () => {
   const [error, setError] = useState('');
   const [receipt, setReceipt] = useState<Receipt | null>(null);
   const prefill = useCheckoutPrefill(isAuth, role);
+  const { addresses, error: addressesError } = useCheckoutAddresses(isAuth, role);
   const attempt = useRef<{ payload: string; key: string } | null>(null);
   const selected = cart.map((item) => ({
     item,
@@ -44,10 +47,19 @@ const Checkout = () => {
     if (!isAuth || busy || !offer || unavailable || isOwner || roleIsLoading) return;
     const form = new FormData(event.currentTarget);
     if (!form.get('offer')) return;
+    const choice = String(form.get('addressChoice') ?? 'later');
+    const selectedAddress = addresses.find((address) => address.id === choice);
+    if (choice !== 'later' && choice !== 'new' && !selectedAddress) {
+      setError('Сохранённый адрес больше не доступен. Выберите другой.');
+      return;
+    }
+    const newAddress = choice === 'new' ? addressFromForm(form, 'delivery') : null;
     const payload = {
       name: String(form.get('name') ?? ''),
       email: String(form.get('email') ?? ''),
-      city: String(form.get('city') ?? ''),
+      city: selectedAddress?.city ?? newAddress?.city ?? String(form.get('city') ?? ''),
+      ...(selectedAddress ? { addressId: selectedAddress.id } : {}),
+      ...(newAddress ? { deliveryAddress: newAddress, saveAddress: form.has('saveAddress') } : {}),
       ...(form.get('phone') ? { phone: String(form.get('phone')) } : {}),
       comment: String(form.get('comment') ?? ''),
       items: selected.map(({ item, product }) => ({
@@ -91,6 +103,8 @@ const Checkout = () => {
         <CheckoutCart selected={selected} total={total} busy={busy} setQuantity={setQuantity} />
         <CheckoutRequestForm
           prefill={prefill}
+          addresses={addresses}
+          addressesError={addressesError}
           isOwner={isOwner}
           busy={busy}
           disabled={busy || isInitializing || loading || unavailable || roleIsLoading}

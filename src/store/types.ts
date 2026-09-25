@@ -1,3 +1,5 @@
+import type { AddressDetails } from './delivery-address';
+
 export type DocumentRef = { id: string; version: string; sha256: string };
 export type LegalDocument = DocumentRef & {
   title: string;
@@ -39,6 +41,7 @@ export type OrderRequest = Receipt & {
   name: string;
   email: string;
   city: string;
+  deliveryAddress: AddressDetails | null;
   phone: string | null;
   comment: string;
   items: { productId: string; name: string; priceRub: number; quantity: number }[];
