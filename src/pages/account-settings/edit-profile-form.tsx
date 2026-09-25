@@ -5,7 +5,7 @@ import styles from './account-settings.module.css';
 
 type EditProfileFormProps = {
   name: string;
-  contactEmail: string;
+  contactEmail: string | null;
   phoneNumber: string;
   sex: NonNullable<CurrentUser['sex']> | '';
   loginEmail: string | null;
@@ -13,7 +13,6 @@ type EditProfileFormProps = {
   message: string | null;
   isSubmitting: boolean;
   onNameChange: (value: string) => void;
-  onContactEmailChange: (value: string) => void;
   onPhoneNumberChange: (value: string) => void;
   onSexChange: (value: NonNullable<CurrentUser['sex']> | '') => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
@@ -29,7 +28,6 @@ const EditProfileForm = ({
   message,
   isSubmitting,
   onNameChange,
-  onContactEmailChange,
   onPhoneNumberChange,
   onSexChange,
   onSubmit,
@@ -47,17 +45,8 @@ const EditProfileForm = ({
       />
     </label>
 
-    <label className={styles.label}>
-      Контактная почта
-      <input
-        className={styles.input}
-        type="email"
-        autoComplete="email"
-        value={contactEmail}
-        onChange={(event) => onContactEmailChange(event.target.value)}
-        maxLength={255}
-      />
-    </label>
+    <p className={styles.message}>Контактная почта: {contactEmail ?? 'не указана'}</p>
+    <Link to="/users/me/settings/contact-email">Изменить контактную почту по коду</Link>
     <label className={styles.label}>
       Телефон
       <input

@@ -12,7 +12,6 @@ import styles from './account-settings.module.css';
 const EditProfile = () => {
   const [user, setUser] = useState<CurrentUser | null>(null);
   const [name, setName] = useState('');
-  const [contactEmail, setContactEmail] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [sex, setSex] = useState<NonNullable<CurrentUser['sex']> | ''>('');
   const [error, setError] = useState<string | null>(null);
@@ -23,7 +22,6 @@ const EditProfile = () => {
   const applyUser = (currentUser: CurrentUser) => {
     setUser(currentUser);
     setName(currentUser.name ?? '');
-    setContactEmail(currentUser.contact_email ?? '');
     setPhoneNumber(currentUser.phone_number ?? '');
     setSex(currentUser.sex ?? '');
   };
@@ -54,13 +52,11 @@ const EditProfile = () => {
     if (!user) return;
 
     const nextName = name.trim() || null;
-    const nextEmail = contactEmail.trim().toLowerCase() || null;
     const nextPhone = phoneNumber.trim() || null;
     const nextSex = sex || null;
     const patch: UpdateCurrentUserData = {};
 
     if (nextName !== user.name) patch.name = nextName;
-    if (nextEmail !== user.contact_email) patch.contact_email = nextEmail;
     if (nextPhone !== user.phone_number) patch.phone_number = nextPhone;
     if (nextSex !== user.sex) patch.sex = nextSex;
     if (Object.keys(patch).length === 0) {
@@ -90,7 +86,7 @@ const EditProfile = () => {
       <h2 className={styles.title}>Мои данные</h2>
       <EditProfileForm
         name={name}
-        contactEmail={contactEmail}
+        contactEmail={user?.contact_email ?? null}
         phoneNumber={phoneNumber}
         sex={sex}
         loginEmail={user?.email ?? null}
@@ -98,7 +94,6 @@ const EditProfile = () => {
         message={message}
         isSubmitting={isSubmitting}
         onNameChange={setName}
-        onContactEmailChange={setContactEmail}
         onPhoneNumberChange={setPhoneNumber}
         onSexChange={setSex}
         onSubmit={handleSubmit}

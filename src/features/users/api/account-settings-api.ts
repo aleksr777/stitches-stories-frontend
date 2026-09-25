@@ -49,8 +49,10 @@ export const confirmCurrentUserPasswordReset = async (
     body: JSON.stringify({ code, new_password: newPassword }),
   });
 
-export const getEmailChangeStatus = async (): Promise<EmailChangeStatus> => {
-  return apiRequest<EmailChangeStatus>('/users/me/email/update/status');
+export const getEmailChangeStatus = async (contact = false): Promise<EmailChangeStatus> => {
+  return apiRequest<EmailChangeStatus>(
+    `/users/me/${contact ? 'contact-email' : 'email'}/update/status`,
+  );
 };
 
 export const requestEmailChange = async (
@@ -68,6 +70,20 @@ export const requestEmailChange = async (
 
 export const confirmEmailChange = async (code: string): Promise<MessageResponse> =>
   apiRequest<MessageResponse>('/users/me/email/update/confirm', {
+    method: 'POST',
+    retry: false,
+    body: JSON.stringify({ code }),
+  });
+
+export const requestContactEmailChange = async (newEmail: string | null): Promise<void> => {
+  await apiRequest('/users/me/contact-email/update/request', {
+    method: 'POST',
+    body: JSON.stringify({ new_email: newEmail }),
+  });
+};
+
+export const confirmContactEmailChange = async (code: string): Promise<MessageResponse> =>
+  apiRequest<MessageResponse>('/users/me/contact-email/update/confirm', {
     method: 'POST',
     retry: false,
     body: JSON.stringify({ code }),

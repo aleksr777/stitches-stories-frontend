@@ -79,6 +79,14 @@ const App = () => (
               </div>
             }
           />
+          <Route
+            path="users/me/settings/contact-email"
+            element={
+              <div className="page narrow">
+                <ChangeEmail contact />
+              </div>
+            }
+          />
           <Route element={<AdminRoute />}>
             <Route path="admin/shop" element={<Admin />} />
             <Route

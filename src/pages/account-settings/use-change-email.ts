@@ -1,20 +1,55 @@
-import { type FormEvent, useState } from 'react';
+import { type FormEvent, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { getCurrentUserRequest } from '../../features/users/api/users-api';
 import {
+  confirmContactEmailChange,
   confirmEmailChange,
+  requestContactEmailChange,
   requestEmailChange,
 } from '../../features/users/api/account-settings-api';
 import { getAttemptsRemaining } from '../../shared/api/api-client';
 import { formatCountdown } from '../../shared/model/countdown';
 import { useEmailChangeLockout } from './use-email-change-lockout';
 
-export const useChangeEmail = () => {
+export const useChangeEmail = (contact = false) => {
   const navigate = useNavigate();
-  const [newEmail, setNewEmail] = useState<string | null>(null);
+  const [newEmail, setNewEmail] = useState<string | null | undefined>(undefined);
+  const [currentContactEmail, setCurrentContactEmail] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { isLocked, lockoutSeconds, maxAttempts, attemptsRemaining, syncError, resetAttempts } =
-    useEmailChangeLockout();
+    useEmailChangeLockout(contact);
+
+  useEffect(() => {
+    if (!contact) return;
+    let active = true;
+    void getCurrentUserRequest()
+      .then((user) => {
+        if (active) setCurrentContactEmail(user.contact_email);
+      })
+      .catch((err: unknown) => {
+        if (active) setError(err instanceof Error ? err.message : 'Не удалось загрузить профиль');
+      });
+    return () => {
+      active = false;
+    };
+  }, [contact]);
+
+  const requestChange = async (email: string | null, password?: string) => {
+    try {
+      setError(null);
+      setIsSubmitting(true);
+      if (contact) await requestContactEmailChange(email);
+      else await requestEmailChange(email!, password!);
+      resetAttempts();
+      setNewEmail(email);
+    } catch (err: unknown) {
+      await syncError(err);
+      setError(err instanceof Error ? err.message : 'Не удалось отправить код');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const handleRequest = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -26,23 +61,15 @@ export const useChangeEmail = () => {
       setError('Enter a new email');
       return;
     }
-    if (!currentPassword) {
-      setError('Enter your current password');
+    if (!contact && !currentPassword) {
+      setError('Укажите текущий пароль');
       return;
     }
+    await requestChange(email, currentPassword);
+  };
 
-    try {
-      setError(null);
-      setIsSubmitting(true);
-      await requestEmailChange(email, currentPassword);
-      resetAttempts();
-      setNewEmail(email);
-    } catch (err: unknown) {
-      await syncError(err);
-      setError(err instanceof Error ? err.message : 'Email change request failed');
-    } finally {
-      setIsSubmitting(false);
-    }
+  const handleRemove = () => {
+    if (currentContactEmail && !isSubmitting && !isLocked) void requestChange(null);
   };
 
   const handleConfirm = async (event: FormEvent<HTMLFormElement>) => {
@@ -57,13 +84,14 @@ export const useChangeEmail = () => {
     try {
       setError(null);
       setIsSubmitting(true);
-      await confirmEmailChange(code);
-      navigate('/users/me', { replace: true });
+      if (contact) await confirmContactEmailChange(code);
+      else await confirmEmailChange(code);
+      navigate(contact ? '/users/me/settings/profile' : '/users/me', { replace: true });
     } catch (err: unknown) {
       const remaining = getAttemptsRemaining(err);
       await syncError(err);
       setError(err instanceof Error ? err.message : 'Email change failed');
-      if (remaining === 0) setNewEmail(null);
+      if (remaining === 0) setNewEmail(undefined);
     } finally {
       setIsSubmitting(false);
     }
@@ -71,7 +99,7 @@ export const useChangeEmail = () => {
 
   const handleUseAnotherEmail = () => {
     setError(null);
-    setNewEmail(null);
+    setNewEmail(undefined);
   };
 
   const lockoutMessage = isLocked
@@ -80,6 +108,7 @@ export const useChangeEmail = () => {
 
   return {
     newEmail,
+    currentContactEmail,
     error,
     isSubmitting,
     isLocked,
@@ -89,5 +118,6 @@ export const useChangeEmail = () => {
     handleRequest,
     handleConfirm,
     handleUseAnotherEmail,
+    handleRemove,
   };
 };

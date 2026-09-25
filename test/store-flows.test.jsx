@@ -137,6 +137,7 @@ const start = (
   let authenticated = false;
   let failed = false;
   let currentProfile = profile;
+  let pendingContactEmail;
   const calls = [];
   let products = [product];
   let categories = emptyCategories
@@ -259,6 +260,8 @@ const start = (
       if (endpoint === '/auth/session')
         return new Response(null, { status: authenticated || owner || customer ? 204 : 401 });
       if (endpoint === '/users/me/partial-data/update' && options.method === 'PATCH') {
+        if ('contact_email' in body)
+          return response({ message: 'Contact email requires a code' }, 400);
         currentProfile = { ...currentProfile, ...body };
         return response({
           id: 1,
@@ -270,6 +273,19 @@ const start = (
           sex: null,
           ...currentProfile,
         });
+      }
+      if (endpoint === '/users/me/contact-email/update/status')
+        return response({ locked: false, retry_after: 0, max_attempts: 5, attempts_remaining: 5 });
+      if (endpoint === '/users/me/contact-email/update/request') {
+        pendingContactEmail = body.new_email;
+        return response({ message: 'Code sent', retry_after: 60, max_attempts: 5 });
+      }
+      if (endpoint === '/users/me/contact-email/update/confirm') {
+        if (body.code !== '123456')
+          return response({ message: 'Неверный код', attempts_remaining: 4 }, 401);
+        currentProfile = { ...currentProfile, contact_email: pendingContactEmail };
+        pendingContactEmail = undefined;
+        return response({ message: 'Email changed' });
       }
       if (endpoint === '/users/me')
         return response({
@@ -626,24 +642,44 @@ test('customer edits imported profile details and checkout uses the saved contac
     },
   });
   await screen.findByRole('heading', { name: 'Мои данные' });
-  await waitFor(() =>
-    expect(screen.getByLabelText('Контактная почта').value).toBe('old@example.test'),
-  );
+  await screen.findByText('Контактная почта: old@example.test');
   expect(screen.getByText(/Почта для входа: login@example.test/)).toBeTruthy();
   fireEvent.change(screen.getByLabelText('Имя'), { target: { value: 'Надежда Иванова' } });
-  fireEvent.change(screen.getByLabelText('Контактная почта'), {
-    target: { value: 'new@example.test' },
-  });
   fireEvent.change(screen.getByLabelText('Телефон'), { target: { value: '' } });
   fireEvent.change(screen.getByLabelText('Пол'), { target: { value: '' } });
   fireEvent.click(screen.getByRole('button', { name: 'Сохранить изменения' }));
   await screen.findByText('Профиль обновлён');
   expect(calls.find((call) => call.endpoint === '/users/me/partial-data/update').body).toEqual({
     name: 'Надежда Иванова',
-    contact_email: 'new@example.test',
     phone_number: null,
     sex: null,
   });
+
+  fireEvent.click(screen.getByRole('link', { name: 'Изменить контактную почту по коду' }));
+  await screen.findByRole('heading', { name: 'Контактная почта' });
+  fireEvent.change(screen.getByLabelText('Новая контактная почта'), {
+    target: { value: 'new@example.test' },
+  });
+  fireEvent.click(screen.getByRole('button', { name: 'Продолжить' }));
+  await screen.findByText(/Код отправлен на new@example.test/);
+  expect(
+    calls.find((call) => call.endpoint === '/users/me/contact-email/update/request').body,
+  ).toEqual({
+    new_email: 'new@example.test',
+  });
+  expect(
+    calls
+      .filter((call) => call.endpoint === '/users/me/partial-data/update')
+      .every((call) => !('contact_email' in call.body)),
+  ).toBe(true);
+  const code = screen.getByLabelText('Код подтверждения');
+  fireEvent.change(code, { target: { value: '654321' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Подтвердить почту' }));
+  await screen.findByText('Неверный код');
+  fireEvent.change(code, { target: { value: '123456' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Подтвердить почту' }));
+  await waitFor(() => expect(router.state.location.pathname).toBe('/users/me/settings/profile'));
+  await screen.findByText('Контактная почта: new@example.test');
 
   await router.navigate('/products/quiet-garden');
   fireEvent.click(await screen.findByRole('button', { name: 'Добавить в корзину' }));

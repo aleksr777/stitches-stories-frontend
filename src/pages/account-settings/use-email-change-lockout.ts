@@ -3,20 +3,20 @@ import { getEmailChangeStatus } from '../../features/users/api/account-settings-
 import { getAttemptsRemaining, getRetryAfterSeconds } from '../../shared/api/api-client';
 import { useCountdown } from '../../shared/model/countdown';
 
-export const useEmailChangeLockout = () => {
+export const useEmailChangeLockout = (contact = false) => {
   const { seconds: lockoutSeconds, start } = useCountdown();
   const [isLocked, setIsLocked] = useState(false);
   const [maxAttempts, setMaxAttempts] = useState(5);
   const [attemptsRemaining, setAttemptsRemaining] = useState(5);
 
   const refresh = useCallback(async () => {
-    const status = await getEmailChangeStatus();
+    const status = await getEmailChangeStatus(contact);
     setIsLocked(status.locked);
     setMaxAttempts(status.max_attempts);
     setAttemptsRemaining(status.attempts_remaining);
     start(status.retry_after);
     return status;
-  }, [start]);
+  }, [contact, start]);
 
   useEffect(() => {
     void refresh().catch(() => undefined);

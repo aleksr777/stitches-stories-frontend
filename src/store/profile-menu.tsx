@@ -10,7 +10,8 @@ const ProfileMenu = ({ user, logout }: { user: CurrentUser; logout: () => Promis
     {user.role !== 'admin' && <Link to="/favorites">Избранное</Link>}
     <Link to="/users/me/settings/profile">Мои данные</Link>
     <Link to="/users/me/settings/password">Сменить пароль</Link>
-    <Link to="/users/me/settings/email">Сменить почту</Link>
+    <Link to="/users/me/settings/contact-email">Контактная почта</Link>
+    {user.email && <Link to="/users/me/settings/email">Сменить почту для входа</Link>}
     <Link to="/users/me/sessions">Активные сеансы</Link>
     {user.role === 'admin' && (
       <>

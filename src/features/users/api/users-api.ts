@@ -16,7 +16,6 @@ export type CurrentUser = {
 
 export type UpdateCurrentUserData = {
   name?: string | null;
-  contact_email?: string | null;
   phone_number?: string | null;
   sex?: CurrentUser['sex'];
 };
