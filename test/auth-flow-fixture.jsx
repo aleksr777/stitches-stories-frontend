@@ -42,7 +42,7 @@ export const startApp = (path, { signedIn = false, rejectCode = false } = {}) =>
       }
       if (endpoint === '/auth/session') return new Response(null, { status: 204 });
       if (endpoint === '/users/me') {
-        return json({ id: 7, email, name: null, age: null, role: 'user' });
+        return json({ id: 7, email, name: null, role: 'user' });
       }
       if (endpoint === '/users/me/email/update/status') {
         return json({ locked: false, retry_after: 0, max_attempts: 5, attempts_remaining: 5 });

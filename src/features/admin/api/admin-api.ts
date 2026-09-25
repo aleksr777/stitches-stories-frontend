@@ -9,7 +9,6 @@ export type AdminUser = {
   phone_number: string | null;
   sex: 'male' | 'female' | null;
   name: string | null;
-  age: number | null;
   role: UserRole;
   is_blocked: boolean;
   blocked_reason: string | null;

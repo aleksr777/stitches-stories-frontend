@@ -15,7 +15,6 @@ const UserManagementUserData = ({ user }: UserManagementUserDataProps) => (
     <span className="contact-text">Почта: {user.email ?? user.contact_email ?? 'не указана'}</span>
     {user.phone_number && <span>Телефон: {user.phone_number}</span>}
     <span>Имя: {user.name ?? '—'}</span>
-    <span>Возраст: {user.age ?? '—'}</span>
     <span>Статус: {user.is_blocked ? 'Заблокирован' : 'Активен'}</span>
     <span>Последняя активность: {formatLastActivity(user.last_activity_at)}</span>
     {user.blocked_reason && <span>Причина блокировки: {user.blocked_reason}</span>}

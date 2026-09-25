@@ -56,7 +56,6 @@ const MyProfile = () => {
       <div className={styles.info}>
         <span>Email: {user.email}</span>
         <span>Name: {user.name ?? '—'}</span>
-        <span>Age: {user.age ?? '—'}</span>
       </div>
 
       <Link className={styles.settingsLink} to="/users/me/settings/profile">

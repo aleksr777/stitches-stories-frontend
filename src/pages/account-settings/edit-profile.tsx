@@ -13,7 +13,6 @@ import styles from './account-settings.module.css';
 const EditProfile = () => {
   const [user, setUser] = useState<CurrentUser | null>(null);
   const [name, setName] = useState('');
-  const [age, setAge] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -22,7 +21,6 @@ const EditProfile = () => {
   const applyUser = (currentUser: CurrentUser) => {
     setUser(currentUser);
     setName(currentUser.name ?? '');
-    setAge(currentUser.age === null ? '' : String(currentUser.age));
   };
 
   useEffect(() => {
@@ -51,22 +49,12 @@ const EditProfile = () => {
     if (!user) return;
 
     const nextName = name.trim();
-    const nextAge = age.trim();
     const patch: UpdateCurrentUserData = {};
 
     if (nextName !== (user.name ?? '')) {
       if (!nextName) return setError('Укажите имя');
       patch.name = nextName;
     }
-    if (nextAge !== (user.age === null ? '' : String(user.age))) {
-      if (!nextAge) return setError('Укажите возраст');
-      const parsedAge = Number(nextAge);
-      if (!Number.isInteger(parsedAge) || parsedAge < 0 || parsedAge > 200) {
-        return setError('Укажите целый возраст от 0 до 200');
-      }
-      patch.age = parsedAge;
-    }
-
     if (Object.keys(patch).length === 0) {
       setError(null);
       setMessage('No changes to save');
@@ -94,12 +82,10 @@ const EditProfile = () => {
       <h2 className={styles.title}>Мои данные</h2>
       <EditProfileForm
         name={name}
-        age={age}
         error={error}
         message={message}
         isSubmitting={isSubmitting}
         onNameChange={setName}
-        onAgeChange={setAge}
         onSubmit={handleSubmit}
       />
       <YandexProfileDetails user={user} />
