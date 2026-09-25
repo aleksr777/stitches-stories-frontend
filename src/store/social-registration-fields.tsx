@@ -1,17 +1,26 @@
 import { Acceptance, DocumentButton } from './legal';
+import type { SocialProvider } from './social-auth-api';
 
-const SocialRegistrationFields = ({ linking }: { linking: boolean }) => (
+const SocialRegistrationFields = ({
+  linking,
+  provider,
+}: {
+  linking: boolean;
+  provider: SocialProvider;
+}) => (
   <>
-    {!linking && (
+    {!linking && provider !== 'yandex' && (
       <label>
         Ваше имя
         <input name="name" autoComplete="name" required minLength={2} maxLength={200} />
       </label>
     )}
-    <label>
-      Электронная почта
-      <input name="email" type="email" autoComplete="email" required maxLength={255} />
-    </label>
+    {(linking || provider !== 'yandex') && (
+      <label>
+        Электронная почта
+        <input name="email" type="email" autoComplete="email" required maxLength={255} />
+      </label>
+    )}
     {linking ? (
       <label>
         Пароль аккаунта магазина
@@ -26,7 +35,9 @@ const SocialRegistrationFields = ({ linking }: { linking: boolean }) => (
     ) : (
       <>
         <p className="muted">
-          Подтвердим почту кодом из письма. Она нужна для связи и восстановления доступа.
+          {provider === 'yandex'
+            ? 'Доступные имя, пол и контакты добавим из Яндекс ID. Недостающие сведения для связи спросим при оформлении заявки.'
+            : 'Подтвердим почту кодом из письма. Она нужна для связи и восстановления доступа.'}
         </p>
         <Acceptance
           id="pd-account"

@@ -42,8 +42,20 @@ export const useSocialAuth = () => {
     setBusy(true);
     setError('');
     try {
-      if (pending.registered) await finishSocialLogin('login', {});
-      else if (email) {
+      if (pending.registered) {
+        await finishSocialLogin('login', {});
+        await auth.finishSocialSession();
+        navigate('/users/me', { replace: true });
+      } else if (pending.provider === 'yandex' && !linking) {
+        const refs = documents
+          .filter((d) => ['pd-account', 'account-terms'].includes(d.id))
+          .map(documentRef);
+        if (refs.length !== 2 || !data.get('pd-account') || !data.get('account-terms'))
+          throw new Error('Подтвердите каждый документ отдельно.');
+        await finishSocialLogin('registration/yandex', { documents: refs });
+        await auth.finishSocialSession();
+        navigate('/users/me', { replace: true });
+      } else if (email) {
         await auth.confirmRegistration(String(data.get('code')), email);
         navigate('/users/me', { replace: true });
       } else if (linking) {
@@ -51,6 +63,8 @@ export const useSocialAuth = () => {
           email: String(data.get('email')),
           password: String(data.get('password')),
         });
+        await auth.finishSocialSession();
+        navigate('/users/me', { replace: true });
       } else {
         const refs = documents
           .filter((d) => ['pd-account', 'account-terms'].includes(d.id))

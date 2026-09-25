@@ -7,6 +7,7 @@ import {
   type UpdateCurrentUserData,
 } from '../../features/users/api/users-api';
 import EditProfileForm from './edit-profile-form';
+import YandexProfileDetails from './yandex-profile-details';
 import styles from './account-settings.module.css';
 
 const EditProfile = () => {
@@ -110,6 +111,7 @@ const EditProfile = () => {
         onAgeChange={setAge}
         onSubmit={handleSubmit}
       />
+      <YandexProfileDetails user={user} />
       <Link className={styles.link} to="/users/me">
         Вернуться в профиль
       </Link>

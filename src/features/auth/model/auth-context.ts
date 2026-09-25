@@ -26,6 +26,7 @@ export type AuthContextValue = {
   ) => Promise<VerificationRequestResult>;
   resendRegistration: (email: string) => Promise<VerificationRequestResult>;
   confirmRegistration: (code: string, email: string) => Promise<void>;
+  finishSocialSession: () => Promise<void>;
   requestPasswordReset: (email: string) => Promise<VerificationRequestResult>;
   confirmPasswordReset: (code: string, newPassword: string, email: string) => Promise<void>;
   logout: () => Promise<void>;

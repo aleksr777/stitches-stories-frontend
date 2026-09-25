@@ -1,8 +1,10 @@
 import type { FormEvent } from 'react';
 import { Link } from 'react-router-dom';
+import CheckoutContactFields, { type CheckoutContact } from './checkout-contact-fields';
 import { Acceptance, DocumentButton } from './legal';
 
 type Props = {
+  prefill: CheckoutContact | null;
   isOwner: boolean;
   busy: boolean;
   disabled: boolean;
@@ -15,6 +17,7 @@ type Props = {
 };
 
 const CheckoutRequestForm = ({
+  prefill,
   isOwner,
   busy,
   disabled,
@@ -46,28 +49,7 @@ const CheckoutRequestForm = ({
     <form className="form checkout-form" onSubmit={onSubmit}>
       <h2>Куда написать?</h2>
       <p>Заявка сохранится в вашем профиле.</p>
-      <label>
-        Ваше имя
-        <input name="name" autoComplete="name" required minLength={2} maxLength={200} />
-      </label>
-      <label>
-        Электронная почта
-        <input name="email" type="email" autoComplete="email" required maxLength={255} />
-      </label>
-      <label>
-        Город
-        <input name="city" autoComplete="address-level2" required minLength={2} maxLength={150} />
-      </label>
-      <label>
-        Телефон <small>по желанию</small>
-        <input
-          name="phone"
-          type="tel"
-          autoComplete="tel"
-          pattern="[+0-9 ()\-]{6,30}"
-          maxLength={30}
-        />
-      </label>
+      <CheckoutContactFields prefill={prefill} />
       <label>
         Пожелания <small>по желанию</small>
         <textarea name="comment" rows={3} maxLength={1500} />

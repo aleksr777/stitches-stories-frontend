@@ -6,7 +6,7 @@ const ProfileMenu = ({ user, logout }: { user: CurrentUser; logout: () => Promis
     <span className="avatar large" aria-hidden="true">
       {(user.name ?? user.nickname ?? 'Я').slice(0, 1).toUpperCase()}
     </span>
-    <p className="contact-text">{user.email}</p>
+    <p className="contact-text">{user.email ?? user.contact_email ?? 'Почта не указана'}</p>
     {user.role !== 'admin' && <Link to="/favorites">Избранное</Link>}
     <Link to="/users/me/settings/profile">Мои данные</Link>
     <Link to="/users/me/settings/password">Сменить пароль</Link>

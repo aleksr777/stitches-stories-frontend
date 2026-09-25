@@ -75,6 +75,10 @@ export const useAuthActions = ({ setAuthenticated, setUnauthenticated, endSessio
     },
     [setAuthenticated],
   );
+  const finishSocialSession = useCallback(async () => {
+    const user = await getCurrentUserRequest();
+    setAuthenticated(user.role);
+  }, [setAuthenticated]);
   const requestPasswordReset = useCallback((email: string) => passwordResetRequest({ email }), []);
   const confirmPasswordReset = useCallback(
     async (code: string, newPassword: string, email: string) => {
@@ -99,6 +103,7 @@ export const useAuthActions = ({ setAuthenticated, setUnauthenticated, endSessio
     requestRegistration,
     resendRegistration,
     confirmRegistration,
+    finishSocialSession,
     requestPasswordReset,
     confirmPasswordReset,
     logout,

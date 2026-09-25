@@ -83,7 +83,7 @@ const UserManagementSessions = () => {
         <div>
           <p className="eyebrow">Безопасность</p>
           <h1 className={styles.title}>Активные сеансы</h1>
-          {user && <p>Пользователь: {user.email}</p>}
+          {user && <p>Пользователь: {user.email ?? user.contact_email ?? 'почта не указана'}</p>}
         </div>
         <button
           className={styles.terminateAllButton}

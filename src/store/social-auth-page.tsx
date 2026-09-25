@@ -57,7 +57,7 @@ const SocialAuthPage = () => {
               </button>
             </>
           ) : (
-            <SocialRegistrationFields linking={linking} />
+            <SocialRegistrationFields linking={linking} provider={pending.provider} />
           )}
           <button className="button" disabled={busy || verification.isLocked} type="submit">
             {busy
@@ -66,7 +66,9 @@ const SocialAuthPage = () => {
                 ? 'Войти'
                 : linking
                   ? 'Привязать и войти'
-                  : 'Продолжить регистрацию'}
+                  : pending.provider === 'yandex'
+                    ? 'Зарегистрироваться и войти'
+                    : 'Продолжить регистрацию'}
           </button>
           {!pending.registered && (
             <button className="text-link" type="button" disabled={busy} onClick={toggleLinking}>

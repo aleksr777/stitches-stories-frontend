@@ -15,7 +15,7 @@ test('social buttons show only configured services and handle provider start fai
 });
 
 test('social registration requires separate documents, verifies email, and enters the account', async () => {
-  const { calls, router } = start('/auth/social');
+  const { calls, router } = start('/auth/social', { socialProvider: 'vk' });
   const formButton = await screen.findByRole('button', { name: 'Продолжить регистрацию' });
   fireEvent.change(screen.getByLabelText('Ваше имя'), { target: { value: 'Покупатель' } });
   fireEvent.change(screen.getByLabelText('Электронная почта'), {
@@ -35,6 +35,25 @@ test('social registration requires separate documents, verifies email, and enter
   fireEvent.change(code, { target: { value: '123456' } });
   fireEvent.submit(code.closest('form'));
   await waitFor(() => expect(router.state.location.pathname).toBe('/users/me'));
+});
+
+test('Yandex registration imports available profile data without asking for contact fields or an email code', async () => {
+  const { calls, router } = start('/auth/social');
+  const button = await screen.findByRole('button', { name: 'Зарегистрироваться и войти' });
+  expect(screen.queryByLabelText('Ваше имя')).toBeNull();
+  expect(screen.queryByLabelText('Электронная почта')).toBeNull();
+  expect(screen.queryByLabelText('Код из письма')).toBeNull();
+  fireEvent.submit(button.closest('form'));
+  expect(await screen.findByText('Подтвердите каждый документ отдельно.')).toBeTruthy();
+  within(button.closest('form'))
+    .getAllByRole('checkbox')
+    .forEach((check) => fireEvent.click(check));
+  fireEvent.submit(button.closest('form'));
+  await waitFor(() => expect(router.state.location.pathname).toBe('/users/me'));
+  const body = calls.find((call) => call.endpoint === '/auth/social/registration/yandex')?.body;
+  expect(body.documents.map((document) => document.id)).toEqual(['pd-account', 'account-terms']);
+  expect(body).not.toHaveProperty('email');
+  expect(body).not.toHaveProperty('name');
 });
 
 test('social linking requests the existing password without accepting new documents', async () => {
@@ -111,6 +130,8 @@ const start = (
     emptyCategories = false,
     socialProviders = [],
     socialRegistered = false,
+    socialProvider = 'yandex',
+    profile = {},
   } = {},
 ) => {
   let authenticated = false;
@@ -141,11 +162,15 @@ const start = (
       calls.push({ endpoint, body, headers: options.headers });
       if (endpoint === '/auth/social/providers') return response(socialProviders);
       if (endpoint === '/auth/social/pending')
-        return response({ provider: 'yandex', registered: socialRegistered });
+        return response({ provider: socialProvider, registered: socialRegistered });
       if (endpoint === '/auth/social/yandex/start')
         return response({ message: 'Сервис временно недоступен' }, 503);
       if (endpoint === '/auth/social/registration/request')
         return response({ message: 'Code sent', retry_after: 60, max_attempts: 5 });
+      if (endpoint === '/auth/social/registration/yandex') {
+        authenticated = true;
+        return response(tokens);
+      }
       if (endpoint === '/auth/social/link')
         return response({ message: 'Неверный пароль аккаунта' }, 401);
       if (endpoint === '/auth/refresh-tokens')
@@ -238,6 +263,9 @@ const start = (
           name: 'Надежда',
           email: 'shopper@example.test',
           role: owner ? 'admin' : 'user',
+          contact_email: null,
+          phone_number: null,
+          ...profile,
         });
       if (endpoint === '/shop/me/consents') return response({ marketing: false });
       if (
@@ -541,6 +569,49 @@ test('customer cart and checkout retry the same authenticated request after serv
   expect(attempts[0].body.items[0].expectedPriceRub).toBe(1200);
   expect(attempts[0].headers.Authorization).toBe('Bearer test-token');
   expect(JSON.parse(localStorage.getItem('ss-cart-v1'))).toEqual([]);
+});
+
+test('checkout prepopulates Yandex contact details and asks only for missing order information', async () => {
+  const { calls } = start('/products/quiet-garden', {
+    customer: true,
+    profile: {
+      name: 'Надежда Петрова',
+      email: null,
+      contact_email: 'nadezhda@example.test',
+      phone_number: '+79001234567',
+      sex: 'female',
+    },
+  });
+  fireEvent.click(await screen.findByRole('button', { name: 'Добавить в корзину' }));
+  fireEvent.click(screen.getByRole('link', { name: 'Перейти в корзину →' }));
+  await waitFor(() => expect(screen.getByLabelText('Ваше имя').value).toBe('Надежда Петрова'));
+  expect(screen.getByLabelText('Электронная почта').value).toBe('nadezhda@example.test');
+  expect(screen.getByLabelText(/Телефон/).value).toBe('+79001234567');
+  expect(screen.queryByLabelText('Пол')).toBeNull();
+  fireEvent.change(screen.getByLabelText('Город'), { target: { value: 'Заречный' } });
+  fireEvent.click(screen.getByRole('checkbox', { name: /Принимаю условия/ }));
+  fireEvent.click(screen.getByRole('button', { name: 'Отправить заявку мастеру' }));
+  await screen.findByRole('heading', { name: 'Заявка отправлена' });
+  expect(calls.find((call) => call.endpoint === '/shop/requests').body).toMatchObject({
+    name: 'Надежда Петрова',
+    email: 'nadezhda@example.test',
+    phone: '+79001234567',
+  });
+});
+
+test('an account without Yandex contact data can enter required details at checkout', async () => {
+  start('/products/quiet-garden', {
+    customer: true,
+    profile: { name: null, email: null, contact_email: null, phone_number: null },
+  });
+  fireEvent.click(await screen.findByRole('button', { name: 'Добавить в корзину' }));
+  fireEvent.click(screen.getByRole('link', { name: 'Перейти в корзину →' }));
+  await screen.findByRole('heading', { name: 'Корзина и заявка' });
+  await waitFor(() => expect(screen.getByLabelText('Ваше имя').value).toBe(''));
+  expect(screen.getByLabelText('Электронная почта').value).toBe('');
+  expect(screen.getByLabelText('Ваше имя').required).toBe(true);
+  expect(screen.getByLabelText('Электронная почта').required).toBe(true);
+  expect(screen.getByLabelText(/Телефон/).required).toBe(false);
 });
 
 test('guest is asked to sign in before adding products, using favorites, or opening the cart', async () => {

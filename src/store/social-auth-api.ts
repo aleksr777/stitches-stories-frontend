@@ -11,9 +11,10 @@ export const socialRequest = <T>(path: string, body?: unknown) =>
     ...(body === undefined ? {} : { body: JSON.stringify(body) }),
   });
 
-export const finishSocialLogin = async (path: 'login' | 'link', body: unknown) => {
+export const finishSocialLogin = async (
+  path: 'login' | 'link' | 'registration/yandex',
+  body: unknown,
+) => {
   const tokens = await socialRequest<AuthTokens>(path, body);
   setAuthTokens(tokens);
-  // A fresh page restores the normal auth context from the HttpOnly session cookie.
-  window.location.assign('/users/me');
 };

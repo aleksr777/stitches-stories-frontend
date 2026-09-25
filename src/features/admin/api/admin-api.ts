@@ -4,7 +4,10 @@ import type { UserRole } from '../../users/api/users-api';
 
 export type AdminUser = {
   id: number;
-  email: string;
+  email: string | null;
+  contact_email: string | null;
+  phone_number: string | null;
+  sex: 'male' | 'female' | null;
   nickname: string | null;
   name: string | null;
   age: number | null;

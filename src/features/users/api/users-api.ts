@@ -4,7 +4,10 @@ export type UserRole = 'user' | 'admin';
 
 export type CurrentUser = {
   id: number;
-  email: string;
+  email: string | null;
+  contact_email: string | null;
+  phone_number: string | null;
+  sex: 'male' | 'female' | null;
   nickname: string | null;
   name: string | null;
   age: number | null;

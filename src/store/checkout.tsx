@@ -6,6 +6,7 @@ import CheckoutRequestForm from './checkout-request-form';
 import { CheckoutSuccess, EmptyCart, OwnerCartUnavailable } from './checkout-states';
 import { useStore } from './context';
 import { documentRef, type Receipt } from './types';
+import { useCheckoutPrefill } from './use-checkout-prefill';
 
 const Checkout = () => {
   const { cart, products, documents, setQuantity, clearCart, retry, loading } = useStore();
@@ -13,6 +14,7 @@ const Checkout = () => {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [receipt, setReceipt] = useState<Receipt | null>(null);
+  const prefill = useCheckoutPrefill(isAuth, role);
   const attempt = useRef<{ payload: string; key: string } | null>(null);
   const selected = cart.map((item) => ({
     item,
@@ -88,6 +90,7 @@ const Checkout = () => {
       <div className="checkout">
         <CheckoutCart selected={selected} total={total} busy={busy} setQuantity={setQuantity} />
         <CheckoutRequestForm
+          prefill={prefill}
           isOwner={isOwner}
           busy={busy}
           disabled={busy || isInitializing || loading || unavailable || roleIsLoading}
