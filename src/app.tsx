@@ -1,8 +1,10 @@
-import { Routes, Route, Link } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
+import StoreNotFound from './store/store-not-found';
 import ProtectedRoute from './features/auth/ui/protected-route';
 import AdminRoute from './features/auth/ui/admin-route';
 import CustomerRoute from './features/auth/ui/customer-route';
 import StoreProvider from './store/provider';
+import SocialAuthPage from './store/social-auth-page';
 import Layout from './store/layout';
 import Home, { About, Delivery } from './store/home';
 import { Catalog, ProductPage } from './store/products';
@@ -33,6 +35,7 @@ const App = () => (
         <Route path="delivery" element={<Delivery />} />
         <Route path="documents" element={<DocumentsPage />} />
         <Route path="auth/:mode" element={<Home />} />
+        <Route path="auth/social" element={<SocialAuthPage />} />
         <Route path="newsletter/:action" element={<NewsletterAction />} />
         <Route path="blocked" element={<BlockedAccount />} />
         <Route path="forbidden" element={<ForbiddenPage />} />
@@ -104,18 +107,7 @@ const App = () => (
             />
           </Route>
         </Route>
-        <Route
-          path="*"
-          element={
-            <section className="page empty">
-              <h1>Эта история ещё не написана</h1>
-              <p>Страница не найдена.</p>
-              <Link className="button" to="/catalog">
-                В коллекцию
-              </Link>
-            </section>
-          }
-        />
+        <Route path="*" element={<StoreNotFound />} />
       </Route>
     </Routes>
   </StoreProvider>

@@ -6,6 +6,63 @@ import App from '../src/app';
 import AuthProvider from '../src/features/auth/model/auth-provider';
 import { startPaymentFlow, invoiceId } from './payment-fixture';
 
+test('social buttons show only configured services and handle provider start failure', async () => {
+  const { calls } = start('/?auth=login', { socialProviders: ['yandex'] });
+  fireEvent.click(await screen.findByRole('button', { name: 'Яндекс ID', exact: true }));
+  expect(await screen.findByText('Сервис временно недоступен')).toBeTruthy();
+  expect(screen.queryByRole('button', { name: 'VK ID', exact: true })).toBeNull();
+  expect(calls.find((call) => call.endpoint === '/auth/social/yandex/start')?.body).toEqual({});
+});
+
+test('social registration requires separate documents, verifies email, and enters the account', async () => {
+  const { calls, router } = start('/auth/social');
+  const formButton = await screen.findByRole('button', { name: 'Продолжить регистрацию' });
+  fireEvent.change(screen.getByLabelText('Ваше имя'), { target: { value: 'Покупатель' } });
+  fireEvent.change(screen.getByLabelText('Электронная почта'), {
+    target: { value: 'buyer@example.test' },
+  });
+  fireEvent.submit(formButton.closest('form'));
+  expect(await screen.findByText('Подтвердите каждый документ отдельно.')).toBeTruthy();
+  expect(calls.some((call) => call.endpoint === '/auth/social/registration/request')).toBe(false);
+  const checks = within(formButton.closest('form')).getAllByRole('checkbox');
+  expect(checks.every((check) => !check.checked)).toBe(true);
+  checks.forEach((check) => fireEvent.click(check));
+  fireEvent.submit(formButton.closest('form'));
+  const code = await screen.findByLabelText('Код из письма');
+  const sent = calls.find((call) => call.endpoint === '/auth/social/registration/request').body;
+  expect(sent.documents.map((document) => document.id)).toEqual(['pd-account', 'account-terms']);
+  expect(sent.password).toBeUndefined();
+  fireEvent.change(code, { target: { value: '123456' } });
+  fireEvent.submit(code.closest('form'));
+  await waitFor(() => expect(router.state.location.pathname).toBe('/users/me'));
+});
+
+test('social linking requests the existing password without accepting new documents', async () => {
+  const { calls } = start('/auth/social');
+  fireEvent.click(await screen.findByRole('button', { name: 'У меня уже есть аккаунт магазина' }));
+  const password = await screen.findByLabelText('Пароль аккаунта магазина');
+  const form = password.closest('form');
+  expect(within(form).queryAllByRole('checkbox')).toHaveLength(0);
+  fireEvent.change(screen.getByLabelText('Электронная почта'), {
+    target: { value: 'existing@example.test' },
+  });
+  fireEvent.change(password, { target: { value: 'synthetic-password' } });
+  fireEvent.submit(form);
+  expect(await screen.findByText('Неверный пароль аккаунта')).toBeTruthy();
+  expect(calls.find((call) => call.endpoint === '/auth/social/link')?.body.email).toBe(
+    'existing@example.test',
+  );
+});
+
+test('cancelled social authorization leaves registration and sign-in unavailable until restarted', async () => {
+  const { calls } = start('/auth/social?error=failed');
+  expect(
+    await screen.findByText('Вход не завершён. Попробуйте снова или войдите по паролю.'),
+  ).toBeTruthy();
+  expect(screen.queryByRole('button', { name: 'Продолжить регистрацию' })).toBeNull();
+  expect(calls.some((call) => call.endpoint === '/auth/social/pending')).toBe(false);
+});
+
 const id = '11111111-1111-4111-8111-111111111111';
 const product = {
   id,
@@ -52,6 +109,8 @@ const start = (
     customer = false,
     failCategoryDelete = false,
     emptyCategories = false,
+    socialProviders = [],
+    socialRegistered = false,
   } = {},
 ) => {
   let authenticated = false;
@@ -80,6 +139,15 @@ const start = (
             ? JSON.parse(options.body)
             : null;
       calls.push({ endpoint, body, headers: options.headers });
+      if (endpoint === '/auth/social/providers') return response(socialProviders);
+      if (endpoint === '/auth/social/pending')
+        return response({ provider: 'yandex', registered: socialRegistered });
+      if (endpoint === '/auth/social/yandex/start')
+        return response({ message: 'Сервис временно недоступен' }, 503);
+      if (endpoint === '/auth/social/registration/request')
+        return response({ message: 'Code sent', retry_after: 60, max_attempts: 5 });
+      if (endpoint === '/auth/social/link')
+        return response({ message: 'Неверный пароль аккаунта' }, 401);
       if (endpoint === '/auth/refresh-tokens')
         return owner || customer ? response(tokens) : response({ message: 'No session' }, 401);
       if (['/shop/products', '/shop/admin/products'].includes(endpoint)) {

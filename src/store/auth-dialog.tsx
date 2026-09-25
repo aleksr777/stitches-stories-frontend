@@ -1,6 +1,7 @@
 import { useLocation } from 'react-router-dom';
 import { getAuthReturnTo } from '../features/auth/model/auth-return-location';
 import AuthDialogForm from './auth-dialog-form';
+import SocialAuthButtons from './social-auth-buttons';
 import { type AuthMode, useAuthDialogState } from './auth-dialog-state';
 import Modal from './modal';
 import { useAuthDialogActions } from './use-auth-dialog-actions';
@@ -38,6 +39,7 @@ const AuthDialog = ({ mode: initialMode, close }: { mode: AuthMode; close: () =>
             : 'Ваши любимые истории будут всегда под рукой.'}
       </p>
       <AuthDialogForm state={state} submit={actions.submit} resend={actions.resend} />
+      {!state.step && state.mode !== 'password-reset' && <SocialAuthButtons />}
     </Modal>
   );
 };
