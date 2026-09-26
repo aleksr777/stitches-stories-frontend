@@ -9,13 +9,7 @@ const SocialRegistrationFields = ({
   provider: SocialProvider;
 }) => (
   <>
-    {!linking && provider !== 'yandex' && (
-      <label>
-        Ваше имя
-        <input name="name" autoComplete="name" required minLength={2} maxLength={200} />
-      </label>
-    )}
-    {(linking || provider !== 'yandex') && (
+    {linking && (
       <label>
         Электронная почта
         <input name="email" type="email" autoComplete="email" required maxLength={255} />
@@ -37,7 +31,7 @@ const SocialRegistrationFields = ({
         <p className="muted">
           {provider === 'yandex'
             ? 'Доступные имя, пол и контакты добавим из Яндекс ID. Недостающие сведения для связи спросим при оформлении заявки.'
-            : 'Подтвердим почту кодом из письма. Она нужна для связи и восстановления доступа.'}
+            : 'Доступные имя и контакты добавим из VK ID. Недостающие сведения для связи спросим при оформлении заявки.'}
         </p>
         <Acceptance
           id="pd-account"

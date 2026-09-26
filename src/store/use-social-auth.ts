@@ -1,8 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../features/auth/model/use-auth';
-import type { VerificationRequestResult } from '../features/auth/api/auth-api';
-import { useVerificationRequestState } from '../shared/model/verification-request';
 import { useStore } from './context';
 import { documentRef } from './types';
 import { finishSocialLogin, socialRequest, type SocialPending } from './social-auth-api';
@@ -12,10 +10,8 @@ export const useSocialAuth = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { documents } = useStore();
-  const verification = useVerificationRequestState();
   const [pending, setPending] = useState<SocialPending | null>(null);
   const [linking, setLinking] = useState(false);
-  const [email, setEmail] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   useEffect(() => {
@@ -46,18 +42,6 @@ export const useSocialAuth = () => {
         await finishSocialLogin('login', {});
         await auth.finishSocialSession();
         navigate('/users/me', { replace: true });
-      } else if (pending.provider === 'yandex' && !linking) {
-        const refs = documents
-          .filter((d) => ['pd-account', 'account-terms'].includes(d.id))
-          .map(documentRef);
-        if (refs.length !== 2 || !data.get('pd-account') || !data.get('account-terms'))
-          throw new Error('Подтвердите каждый документ отдельно.');
-        await finishSocialLogin('registration/yandex', { documents: refs });
-        await auth.finishSocialSession();
-        navigate('/users/me', { replace: true });
-      } else if (email) {
-        await auth.confirmRegistration(String(data.get('code')), email);
-        navigate('/users/me', { replace: true });
       } else if (linking) {
         await finishSocialLogin('link', {
           email: String(data.get('email')),
@@ -71,51 +55,27 @@ export const useSocialAuth = () => {
           .map(documentRef);
         if (refs.length !== 2 || !data.get('pd-account') || !data.get('account-terms'))
           throw new Error('Подтвердите каждый документ отдельно.');
-        const address = String(data.get('email')).trim().toLowerCase();
-        const result = await socialRequest<VerificationRequestResult>('registration/request', {
-          name: String(data.get('name')).trim(),
-          email: address,
-          documents: refs,
-        });
-        verification.applyResult(result);
-        setEmail(address);
+        await finishSocialLogin(`registration/${pending.provider}`, { documents: refs });
+        await auth.finishSocialSession();
+        navigate('/users/me', { replace: true });
       }
     } catch (err) {
-      verification.applyRetryError(err);
-      verification.applyAttemptError(err);
       setError(err instanceof Error ? err.message : 'Не удалось завершить вход.');
-    } finally {
-      setBusy(false);
-    }
-  };
-  const resend = async () => {
-    setBusy(true);
-    setError('');
-    try {
-      verification.applyResult(await auth.resendRegistration(email));
-    } catch (err) {
-      verification.applyRetryError(err);
-      setError(err instanceof Error ? err.message : 'Не удалось отправить код.');
     } finally {
       setBusy(false);
     }
   };
   const toggleLinking = () => {
     setLinking(!linking);
-    setEmail('');
     setError('');
-    verification.reset();
   };
   return {
     navigate,
     pending,
     linking,
-    email,
     busy,
     error,
-    verification,
     submit,
-    resend,
     toggleLinking,
   };
 };

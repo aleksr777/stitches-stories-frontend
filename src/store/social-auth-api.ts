@@ -12,7 +12,7 @@ export const socialRequest = <T>(path: string, body?: unknown) =>
   });
 
 export const finishSocialLogin = async (
-  path: 'login' | 'link' | 'registration/yandex',
+  path: 'login' | 'link' | 'registration/yandex' | 'registration/vk',
   body: unknown,
 ) => {
   const tokens = await socialRequest<AuthTokens>(path, body);

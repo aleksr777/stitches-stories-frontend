@@ -4,18 +4,7 @@ import { socialNames } from './social-auth-api';
 import { useSocialAuth } from './use-social-auth';
 
 const SocialAuthPage = () => {
-  const {
-    navigate,
-    pending,
-    linking,
-    email,
-    busy,
-    error,
-    verification,
-    submit,
-    resend,
-    toggleLinking,
-  } = useSocialAuth();
+  const { navigate, pending, linking, busy, error, submit, toggleLinking } = useSocialAuth();
   return (
     <Modal
       title={pending ? 'Вход через ' + socialNames[pending.provider] : 'Вход в мастерскую'}
@@ -30,45 +19,17 @@ const SocialAuthPage = () => {
         <form className="form" onSubmit={(event) => void submit(event)}>
           {pending.registered ? (
             <p>Аккаунт подтверждён. Продолжите вход в магазин.</p>
-          ) : email ? (
-            <>
-              <p>
-                Если адрес подходит для регистрации, код отправлен на {email}. Если аккаунт уже
-                существует, вернитесь и выберите привязку.
-              </p>
-              <label>
-                Код из письма
-                <input
-                  name="code"
-                  inputMode="numeric"
-                  autoComplete="one-time-code"
-                  pattern="[0-9]{6}"
-                  required
-                  maxLength={6}
-                />
-              </label>
-              <button
-                className="text-link"
-                type="button"
-                disabled={busy || verification.resendSeconds > 0 || verification.isLocked}
-                onClick={() => void resend()}
-              >
-                Отправить код повторно
-              </button>
-            </>
           ) : (
             <SocialRegistrationFields linking={linking} provider={pending.provider} />
           )}
-          <button className="button" disabled={busy || verification.isLocked} type="submit">
+          <button className="button" disabled={busy} type="submit">
             {busy
               ? 'Подождите…'
-              : pending.registered || email
+              : pending.registered
                 ? 'Войти'
                 : linking
                   ? 'Привязать и войти'
-                  : pending.provider === 'yandex'
-                    ? 'Зарегистрироваться и войти'
-                    : 'Продолжить регистрацию'}
+                  : 'Зарегистрироваться и войти'}
           </button>
           {!pending.registered && (
             <button className="text-link" type="button" disabled={busy} onClick={toggleLinking}>

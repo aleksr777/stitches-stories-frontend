@@ -14,27 +14,24 @@ test('social buttons show only configured services and handle provider start fai
   expect(calls.find((call) => call.endpoint === '/auth/social/yandex/start')?.body).toEqual({});
 });
 
-test('social registration requires separate documents, verifies email, and enters the account', async () => {
+test('VK registration requires separate documents and enters the account with provider profile', async () => {
   const { calls, router } = start('/auth/social', { socialProvider: 'vk' });
-  const formButton = await screen.findByRole('button', { name: 'Продолжить регистрацию' });
-  fireEvent.change(screen.getByLabelText('Ваше имя'), { target: { value: 'Покупатель' } });
-  fireEvent.change(screen.getByLabelText('Электронная почта'), {
-    target: { value: 'buyer@example.test' },
-  });
+  const formButton = await screen.findByRole('button', { name: 'Зарегистрироваться и войти' });
+  expect(screen.queryByLabelText('Ваше имя')).toBeNull();
+  expect(screen.queryByLabelText('Электронная почта')).toBeNull();
+  expect(screen.queryByLabelText('Код из письма')).toBeNull();
   fireEvent.submit(formButton.closest('form'));
   expect(await screen.findByText('Подтвердите каждый документ отдельно.')).toBeTruthy();
-  expect(calls.some((call) => call.endpoint === '/auth/social/registration/request')).toBe(false);
+  expect(calls.some((call) => call.endpoint === '/auth/social/registration/vk')).toBe(false);
   const checks = within(formButton.closest('form')).getAllByRole('checkbox');
   expect(checks.every((check) => !check.checked)).toBe(true);
   checks.forEach((check) => fireEvent.click(check));
   fireEvent.submit(formButton.closest('form'));
-  const code = await screen.findByLabelText('Код из письма');
-  const sent = calls.find((call) => call.endpoint === '/auth/social/registration/request').body;
-  expect(sent.documents.map((document) => document.id)).toEqual(['pd-account', 'account-terms']);
-  expect(sent.password).toBeUndefined();
-  fireEvent.change(code, { target: { value: '123456' } });
-  fireEvent.submit(code.closest('form'));
   await waitFor(() => expect(router.state.location.pathname).toBe('/users/me'));
+  const sent = calls.find((call) => call.endpoint === '/auth/social/registration/vk').body;
+  expect(sent.documents.map((document) => document.id)).toEqual(['pd-account', 'account-terms']);
+  expect(sent).not.toHaveProperty('email');
+  expect(sent).not.toHaveProperty('name');
 });
 
 test('Yandex registration imports available profile data without asking for contact fields or an email code', async () => {
@@ -169,9 +166,7 @@ const start = (
         return response({ provider: socialProvider, registered: socialRegistered });
       if (endpoint === '/auth/social/yandex/start')
         return response({ message: 'Сервис временно недоступен' }, 503);
-      if (endpoint === '/auth/social/registration/request')
-        return response({ message: 'Code sent', retry_after: 60, max_attempts: 5 });
-      if (endpoint === '/auth/social/registration/yandex') {
+      if (['/auth/social/registration/yandex', '/auth/social/registration/vk'].includes(endpoint)) {
         authenticated = true;
         return response(tokens);
       }
