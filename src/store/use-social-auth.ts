@@ -4,6 +4,7 @@ import { useAuth } from '../features/auth/model/use-auth';
 import { useStore } from './context';
 import { documentRef } from './types';
 import { finishSocialLogin, socialRequest, type SocialPending } from './social-auth-api';
+import { clearSocialAuthReturn, takeSocialAuthReturn } from './social-auth-return';
 
 export const useSocialAuth = () => {
   const auth = useAuth();
@@ -17,6 +18,7 @@ export const useSocialAuth = () => {
   useEffect(() => {
     let active = true;
     if (new URLSearchParams(location.search).has('error')) {
+      clearSocialAuthReturn();
       setError('Вход не завершён. Попробуйте снова или войдите по паролю.');
       return;
     }
@@ -25,7 +27,10 @@ export const useSocialAuth = () => {
         if (active) setPending(result);
       })
       .catch((err: unknown) => {
-        if (active) setError(err instanceof Error ? err.message : 'Начните вход заново.');
+        if (active) {
+          clearSocialAuthReturn();
+          setError(err instanceof Error ? err.message : 'Начните вход заново.');
+        }
       });
     return () => {
       active = false;
@@ -41,14 +46,14 @@ export const useSocialAuth = () => {
       if (pending.registered) {
         await finishSocialLogin('login', {});
         await auth.finishSocialSession();
-        navigate('/users/me', { replace: true });
+        navigate(takeSocialAuthReturn(), { replace: true });
       } else if (linking) {
         await finishSocialLogin('link', {
           email: String(data.get('email')),
           password: String(data.get('password')),
         });
         await auth.finishSocialSession();
-        navigate('/users/me', { replace: true });
+        navigate(takeSocialAuthReturn(), { replace: true });
       } else {
         const refs = documents
           .filter((d) => ['pd-account', 'account-terms'].includes(d.id))
@@ -57,7 +62,7 @@ export const useSocialAuth = () => {
           throw new Error('Подтвердите каждый документ отдельно.');
         await finishSocialLogin(`registration/${pending.provider}`, { documents: refs });
         await auth.finishSocialSession();
-        navigate('/users/me', { replace: true });
+        navigate(takeSocialAuthReturn(), { replace: true });
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Не удалось завершить вход.');
@@ -71,6 +76,7 @@ export const useSocialAuth = () => {
   };
   return {
     navigate,
+    clearSocialAuthReturn,
     pending,
     linking,
     busy,

@@ -15,6 +15,7 @@ test('social buttons show only configured services and handle provider start fai
 });
 
 test('VK registration requires separate documents and enters the account with provider profile', async () => {
+  sessionStorage.setItem('stitches-social-auth-return', '/catalog');
   const { calls, router } = start('/auth/social', { socialProvider: 'vk' });
   const formButton = await screen.findByRole('button', { name: 'Зарегистрироваться и войти' });
   expect(screen.queryByLabelText('Ваше имя')).toBeNull();
@@ -27,11 +28,24 @@ test('VK registration requires separate documents and enters the account with pr
   expect(checks.every((check) => !check.checked)).toBe(true);
   checks.forEach((check) => fireEvent.click(check));
   fireEvent.submit(formButton.closest('form'));
-  await waitFor(() => expect(router.state.location.pathname).toBe('/users/me'));
+  await waitFor(() => expect(router.state.location.pathname).toBe('/catalog'));
+  expect(sessionStorage.getItem('stitches-social-auth-return')).toBeNull();
   const sent = calls.find((call) => call.endpoint === '/auth/social/registration/vk').body;
   expect(sent.documents.map((document) => document.id)).toEqual(['pd-account', 'account-terms']);
   expect(sent).not.toHaveProperty('email');
   expect(sent).not.toHaveProperty('name');
+});
+
+test('a returning VK customer reaches the page where sign-in began', async () => {
+  sessionStorage.setItem('stitches-social-auth-return', '/cart');
+  const { calls, router } = start('/auth/social', {
+    socialProvider: 'vk',
+    socialRegistered: true,
+  });
+  fireEvent.click(await screen.findByRole('button', { name: 'Войти', exact: true }));
+  await waitFor(() => expect(router.state.location.pathname).toBe('/cart'));
+  expect(calls.find((call) => call.endpoint === '/auth/social/login')?.body).toEqual({});
+  expect(sessionStorage.getItem('stitches-social-auth-return')).toBeNull();
 });
 
 test('Yandex registration imports available profile data without asking for contact fields or an email code', async () => {
@@ -167,6 +181,10 @@ const start = (
       if (endpoint === '/auth/social/yandex/start')
         return response({ message: 'Сервис временно недоступен' }, 503);
       if (['/auth/social/registration/yandex', '/auth/social/registration/vk'].includes(endpoint)) {
+        authenticated = true;
+        return response(tokens);
+      }
+      if (endpoint === '/auth/social/login') {
         authenticated = true;
         return response(tokens);
       }
@@ -361,7 +379,10 @@ const start = (
   render(strictMode ? <StrictMode>{app}</StrictMode> : app);
   return { calls, router };
 };
-beforeEach(() => localStorage.clear());
+beforeEach(() => {
+  localStorage.clear();
+  sessionStorage.clear();
+});
 
 test('customer reviews archived terms and pays the server amount through SBP, then sees verified status', async () => {
   const flow = startPaymentFlow({ failStart: true });

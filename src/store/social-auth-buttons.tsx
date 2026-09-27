@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { socialNames, socialRequest, type SocialProvider } from './social-auth-api';
+import { rememberSocialAuthReturn } from './social-auth-return';
 import './social-auth.css';
 
 const SocialAuthButtons = () => {
+  const location = useLocation();
   const [providers, setProviders] = useState<SocialProvider[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -22,6 +25,7 @@ const SocialAuthButtons = () => {
     setError('');
     try {
       const { url } = await socialRequest<{ url: string }>(provider + '/start', {});
+      rememberSocialAuthReturn(location);
       window.location.assign(url);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Не удалось начать вход. Попробуйте снова.');

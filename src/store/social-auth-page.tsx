@@ -4,11 +4,16 @@ import { socialNames } from './social-auth-api';
 import { useSocialAuth } from './use-social-auth';
 
 const SocialAuthPage = () => {
-  const { navigate, pending, linking, busy, error, submit, toggleLinking } = useSocialAuth();
+  const { navigate, clearSocialAuthReturn, pending, linking, busy, error, submit, toggleLinking } =
+    useSocialAuth();
+  const leave = (path: string) => {
+    clearSocialAuthReturn();
+    navigate(path, { replace: true });
+  };
   return (
     <Modal
       title={pending ? 'Вход через ' + socialNames[pending.provider] : 'Вход в мастерскую'}
-      onClose={() => navigate('/', { replace: true })}
+      onClose={() => leave('/')}
     >
       {error && <p role="alert">{error}</p>}
       {!pending ? (
@@ -38,11 +43,7 @@ const SocialAuthPage = () => {
           )}
         </form>
       )}
-      <button
-        className="text-link"
-        type="button"
-        onClick={() => navigate('/?auth=login', { replace: true })}
-      >
+      <button className="text-link" type="button" onClick={() => leave('/?auth=login')}>
         Другой способ входа
       </button>
     </Modal>
